@@ -37,7 +37,6 @@ export default function Predictions({ userId }) {
     });
     setPredictions(predMap);
 
-    // Obtener posición desde la vista leaderboard
     const { data: leaderboard } = await supabase
       .from("leaderboard")
       .select("user_id, rank")
@@ -77,7 +76,6 @@ export default function Predictions({ userId }) {
   }
 
   function isMatchLocked(matchDate) {
-    // Bloquear 1 hora antes del partido (hora Colombia)
     const now = new Date();
     const matchTime = new Date(matchDate);
     const oneHourBefore = new Date(matchTime.getTime() - 60 * 60 * 1000);
@@ -93,7 +91,7 @@ export default function Predictions({ userId }) {
     return { label: "Sin predicción", cls: "badge-miss" };
   }
 
-  // 🔥 AGRUPAR PARTIDOS POR FECHA 🔥
+  // Agrupar por fecha
   const groupedByDate = matches.reduce((acc, match) => {
     if (!match.match_date) return acc;
     const date = new Date(match.match_date);
@@ -111,6 +109,7 @@ export default function Predictions({ userId }) {
 
   return (
     <div>
+      {/* Stats */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-num">{myStats.points}</div>
@@ -126,73 +125,80 @@ export default function Predictions({ userId }) {
         </div>
       </div>
 
+      {/* Partidos */}
       {Object.entries(groupedByDate).map(([date, dateMatches]) => (
         <div key={date}>
-          <h2 className="text-xl font-bold mt-6 mb-3 text-green-700 border-b pb-1">
+          <h2 className="date-header">
             📅 {date.charAt(0).toUpperCase() + date.slice(1)}
           </h2>
+          
           {dateMatches.map((match) => {
             const pred = predictions[match.id];
             const result = getResultLabel(pred, match);
             const isFinished = match.is_finished;
             const isLocked = !isFinished && isMatchLocked(match.match_date);
-            const showLockWarning = isLocked && !pred;
+            const matchHour = new Date(match.match_date).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
             
             return (
-              <div className="match-card" key={match.id}>
-                <div className="match-row">
-                  <div className="team-name">
-                    <span className="text-xl mr-1">{match.home_flag}</span> {match.home_team}
+              <div className="match-card-new" key={match.id}>
+                {/* VS Container */}
+                <div className="vs-container">
+                  <div className="team-box home">
+                    <div className="team-flag-large">{match.home_flag}</div>
+                    <div className="team-name-large">{match.home_team}</div>
                   </div>
-                  <div className="score-center">
+                  
+                  <div className="vs-middle">
                     {isFinished ? (
-                      <div className="final-score">
-                        <span className="score-home">{match.home_score}</span>
-                        <span className="score-dash">-</span>
-                        <span className="score-away">{match.away_score}</span>
+                      <div className="result-large">
+                        <span>{match.home_score}</span>
+                        <span className="vs-text">VS</span>
+                        <span>{match.away_score}</span>
                       </div>
                     ) : (
-                      <div className="score-inputs">
+                      <div className="prediction-inputs">
                         <input
                           type="number" min="0" max="20"
                           value={pred?.home_score ?? ""}
                           placeholder="0"
                           onChange={(e) => handleScore(match.id, "home_score", e.target.value)}
                           disabled={isLocked}
-                          style={isLocked ? { opacity: 0.6, cursor: "not-allowed" } : {}}
                         />
-                        <span className="dash">-</span>
+                        <span className="vs-small">vs</span>
                         <input
                           type="number" min="0" max="20"
                           value={pred?.away_score ?? ""}
                           placeholder="0"
                           onChange={(e) => handleScore(match.id, "away_score", e.target.value)}
                           disabled={isLocked}
-                          style={isLocked ? { opacity: 0.6, cursor: "not-allowed" } : {}}
                         />
                       </div>
                     )}
-                    <div className="match-date">
-                      {match.match_date ? new Date(match.match_date).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : ""}
-                    </div>
+                    <div className="match-hour-large">{matchHour}</div>
                   </div>
-                  <div className="team-name right">
-                    {match.away_team} <span className="text-xl ml-1">{match.away_flag}</span>
+                  
+                  <div className="team-box away">
+                    <div className="team-flag-large">{match.away_flag}</div>
+                    <div className="team-name-large">{match.away_team}</div>
                   </div>
                 </div>
-                {showLockWarning && (
-                  <div className="match-result-row" style={{ justifyContent: "center" }}>
-                    <span className="badge badge-miss" style={{ background: "#fde8e8", color: "#c0392b" }}>
-                      ⚠️ Partido bloqueado - ya no se puede pronosticar
-                    </span>
+
+                {/* Info del partido */}
+                <div className="match-footer">
+                  <span className="match-group">🏆 {match.group_name || "Primera fase"}</span>
+                  <span className="match-location">📍 {match.stadium || "Estadio"}</span>
+                </div>
+
+                {isLocked && !pred && (
+                  <div className="lock-warning-new">
+                    ⚠️ Partido bloqueado - ya no se puede pronosticar
                   </div>
                 )}
+
                 {result && (
-                  <div className="match-result-row">
-                    <span className="pred-label">
-                      Tu predicción: {pred ? `${pred.home_score}-${pred.away_score}` : "Sin predicción"}
-                    </span>
-                    <span className={`badge ${result.cls}`}>{result.label}</span>
+                  <div className="prediction-result">
+                    <span>Tu predicción: {pred ? `${pred.home_score} - ${pred.away_score}` : "Sin predicción"}</span>
+                    <span className={`badge-new ${result.cls}`}>{result.label}</span>
                   </div>
                 )}
               </div>
@@ -202,8 +208,8 @@ export default function Predictions({ userId }) {
       ))}
 
       {matches.some((m) => !m.is_finished && !isMatchLocked(m.match_date)) && (
-        <button className="save-btn" onClick={savePredictions} disabled={saving}>
-          {saving ? "Guardando..." : saved ? "✓ Guardado" : "Guardar predicciones"}
+        <button className="save-btn-new" onClick={savePredictions} disabled={saving}>
+          {saving ? "Guardando..." : saved ? "✓ Guardado" : "💾 Guardar todas las predicciones"}
         </button>
       )}
     </div>

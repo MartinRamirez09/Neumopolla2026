@@ -8,14 +8,15 @@
   --green-dark: #0f5233;
   --gold: #c9a84c;
   --red: #c0392b;
-  --bg: #f7f7f5;
+  --bg: #f0f2f5;
   --surface: #ffffff;
   --border: rgba(0,0,0,0.08);
   --text: #1a1a1a;
   --text-muted: #666;
   --text-faint: #999;
-  --radius: 12px;
-  --radius-sm: 8px;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 body {
@@ -41,7 +42,7 @@ body {
   background: linear-gradient(135deg, #0f5233 0%, #1a7a4a 50%, #2ecc71 100%);
 }
 .auth-card {
-  background: white; border-radius: 20px; padding: 2.5rem 2rem;
+  background: white; border-radius: 24px; padding: 2.5rem 2rem;
   max-width: 380px; width: 100%; text-align: center;
   box-shadow: 0 20px 60px rgba(0,0,0,0.2);
 }
@@ -104,124 +105,186 @@ body {
   font-weight: 700;
   margin-top: 24px;
   margin-bottom: 12px;
-  padding-bottom: 6px;
-  border-bottom: 2px solid var(--green);
-  color: var(--green-dark);
+  color: var(--text);
   font-family: 'Syne', sans-serif;
 }
 
-/* Match card */
-.match-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 1rem; margin-bottom: 8px; }
+/* Nuevo diseño de tarjeta de partido */
+.match-card-new {
+  background: white;
+  border-radius: 20px;
+  padding: 20px 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
 
-/* NUEVOS ESTILOS PARA DISEÑO TIPO FIFA */
-.match-teams-row {
+.vs-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
 }
 
-.team-home, .team-away {
+.team-box {
   flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  text-align: center;
 }
 
-.team-home {
-  justify-content: flex-start;
+.team-box.home {
+  text-align: left;
 }
 
-.team-away {
-  justify-content: flex-end;
+.team-box.away {
+  text-align: right;
 }
 
-.team-flag {
-  font-size: 28px;
+.team-flag-large {
+  font-size: 48px;
+  margin-bottom: 8px;
 }
 
-.team-name {
-  font-size: 15px;
+.team-name-large {
+  font-size: 16px;
   font-weight: 600;
   color: var(--text);
 }
 
-.match-score-area {
+.vs-middle {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  min-width: 100px;
+  gap: 6px;
 }
 
-.match-hour {
+.prediction-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--green-light);
+  padding: 8px 12px;
+  border-radius: 40px;
+}
+
+.prediction-inputs input {
+  width: 50px;
+  height: 44px;
+  text-align: center;
+  border: none;
+  border-radius: 30px;
+  font-size: 20px;
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  background: white;
+  color: var(--green-dark);
+  outline: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.prediction-inputs input:focus {
+  box-shadow: 0 0 0 2px var(--green);
+}
+
+.vs-small {
   font-size: 12px;
-  color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--green-dark);
 }
 
-.match-info {
+.result-large {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 800;
+  font-family: 'Syne', sans-serif;
+  background: var(--green-light);
+  padding: 8px 16px;
+  border-radius: 40px;
+}
+
+.result-large span:first-child { color: var(--green-dark); }
+.result-large span:last-child { color: var(--red); }
+.vs-text { font-size: 14px; color: var(--text-muted); }
+
+.match-hour-large {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.match-footer {
   display: flex;
   justify-content: space-between;
-  margin-top: 12px;
-  padding-top: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--border);
   font-size: 11px;
   color: var(--text-muted);
 }
 
-.match-stage {
+.match-group {
   background: var(--green-light);
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
   color: var(--green-dark);
 }
 
-.match-stadium {
+.match-location {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-/* Score inputs */
-.score-inputs { display: flex; align-items: center; gap: 6px; }
-.score-inputs input {
-  width: 44px; height: 40px; text-align: center; border-radius: var(--radius-sm);
-  border: 1px solid var(--border); font-size: 18px; font-weight: 600;
-  font-family: 'Syne', sans-serif; color: var(--green-dark);
-  background: var(--green-light); outline: none; transition: border-color 0.15s;
+.lock-warning-new {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 11px;
+  color: #c0392b;
+  background: #fde8e8;
+  padding: 6px 12px;
+  border-radius: 30px;
 }
-.score-inputs input:focus { border-color: var(--green); }
-.score-inputs input:disabled {
-  background: #f0f0f0;
-  color: var(--text-faint);
-  cursor: not-allowed;
+
+.prediction-result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
 }
-.dash { color: var(--text-faint); font-weight: 500; }
 
-.final-score { display: flex; align-items: center; gap: 6px; font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
-.score-home { color: var(--green-dark); }
-.score-dash { color: var(--text-faint); font-size: 16px; }
-.score-away { color: var(--red); }
+.badge-new {
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 30px;
+  font-weight: 600;
+}
 
-.match-result-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
-.pred-label { font-size: 12px; color: var(--text-muted); }
+.badge-new.badge-exact { background: #e8f5ee; color: #0f5233; }
+.badge-new.badge-win { background: #e6f1fb; color: #0c447c; }
+.badge-new.badge-miss { background: #fde8e8; color: #7a1515; }
 
-/* Badges */
-.badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
-.badge-exact { background: #e8f5ee; color: #0f5233; }
-.badge-win { background: #e6f1fb; color: #0c447c; }
-.badge-miss { background: #fde8e8; color: #7a1515; }
-
-/* Save button */
-.save-btn {
-  width: 100%; padding: 13px; border-radius: var(--radius); border: none;
-  background: var(--green); color: white; font-size: 14px; font-weight: 500;
-  font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 1rem;
+.save-btn-new {
+  width: 100%;
+  padding: 14px;
+  border-radius: 40px;
+  border: none;
+  background: var(--green);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  margin-top: 20px;
+  margin-bottom: 30px;
   transition: background 0.15s;
 }
-.save-btn:hover { background: var(--green-dark); }
-.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.save-btn-new:hover { background: var(--green-dark); }
+.save-btn-new:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* Ranking */
 .ranking-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 1rem 1.25rem; }
@@ -247,55 +310,12 @@ body {
   font-size: 14px; font-weight: 500;
 }
 
-/* Locked match warning */
-.lock-warning {
-  text-align: center;
-  margin-top: 8px;
-  font-size: 11px;
-  color: #c0392b;
-  background: #fde8e8;
-  padding: 4px 8px;
-  border-radius: 20px;
-  display: inline-block;
-  width: auto;
-}
-
 /* Responsive */
 @media (max-width: 480px) {
-  .team-flag {
-    font-size: 20px;
-  }
-  .team-name {
-    font-size: 12px;
-  }
-  .match-score-area {
-    min-width: 70px;
-  }
-  .score-inputs input {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-  }
-  .match-info {
-    flex-direction: column;
-    gap: 6px;
-    align-items: center;
-  }
-  .date-header {
-    font-size: 16px;
-  }
-  .stat-num {
-    font-size: 22px;
-  }
-  .ranking-pts {
-    font-size: 16px;
-  }
-  .avatar {
-    width: 30px;
-    height: 30px;
-    font-size: 10px;
-  }
-  .match-card {
-    padding: 12px;
-  }
+  .team-flag-large { font-size: 32px; }
+  .team-name-large { font-size: 13px; }
+  .prediction-inputs input { width: 40px; height: 38px; font-size: 16px; }
+  .result-large { font-size: 20px; padding: 4px 12px; }
+  .vs-small { font-size: 10px; }
+  .match-footer { flex-direction: column; gap: 8px; align-items: center; }
 }
