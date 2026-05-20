@@ -84,11 +84,11 @@ export default function Predictions({ userId }) {
 
   function getResultLabel(pred, match) {
     if (!match.is_finished) return null;
-    if (pred?.points === 3) return { label: "Exacto +3pts", cls: "badge-exact" };
-    if (pred?.points === 2) return { label: "Diferencia exacta +2pts", cls: "badge-exact" };
-    if (pred?.points === 1) return { label: "Ganador +1pt", cls: "badge-win" };
-    if (pred) return { label: "Fallaste 0pts", cls: "badge-miss" };
-    return { label: "Sin predicción", cls: "badge-miss" };
+    if (pred?.points === 3) return { label: "Exacto +3pts", cls: "badge-new badge-exact" };
+    if (pred?.points === 2) return { label: "Diferencia exacta +2pts", cls: "badge-new badge-exact" };
+    if (pred?.points === 1) return { label: "Ganador +1pt", cls: "badge-new badge-win" };
+    if (pred) return { label: "Fallaste 0pts", cls: "badge-new badge-miss" };
+    return { label: "Sin predicción", cls: "badge-new badge-miss" };
   }
 
   // Agrupar por fecha
@@ -140,65 +140,65 @@ export default function Predictions({ userId }) {
             const matchHour = new Date(match.match_date).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
             
             return (
-              <div className="match-card-new" key={match.id}>
-                {/* VS Container */}
-                <div className="vs-container">
-                  <div className="team-box home">
-                    <div className="team-flag-large">{match.home_flag}</div>
-                    <div className="team-name-large">{match.home_team}</div>
-                  </div>
-                  
-                  <div className="vs-middle">
-                    {isFinished ? (
-                      <div className="result-large">
-                        <span>{match.home_score}</span>
-                        <span className="vs-text">VS</span>
-                        <span>{match.away_score}</span>
-                      </div>
-                    ) : (
-                      <div className="prediction-inputs">
-                        <input
-                          type="number" min="0" max="20"
-                          value={pred?.home_score ?? ""}
-                          placeholder="0"
-                          onChange={(e) => handleScore(match.id, "home_score", e.target.value)}
-                          disabled={isLocked}
-                        />
-                        <span className="vs-small">vs</span>
-                        <input
-                          type="number" min="0" max="20"
-                          value={pred?.away_score ?? ""}
-                          placeholder="0"
-                          onChange={(e) => handleScore(match.id, "away_score", e.target.value)}
-                          disabled={isLocked}
-                        />
-                      </div>
-                    )}
-                    <div className="match-hour-large">{matchHour}</div>
-                  </div>
-                  
-                  <div className="team-box away">
-                    <div className="team-flag-large">{match.away_flag}</div>
-                    <div className="team-name-large">{match.away_team}</div>
-                  </div>
+              <div className="match-card-final" key={match.id}>
+                {/* Equipo local */}
+                <div className="team-home-final">
+                  <div className="team-flag-final">{match.home_flag}</div>
+                  <div className="team-name-final">{match.home_team}</div>
                 </div>
 
-                {/* Info del partido */}
-                <div className="match-footer">
-                  <span className="match-group">🏆 {match.group_name || "Primera fase"}</span>
-                  <span className="match-location">📍 {match.stadium || "Estadio"}</span>
+                {/* VS y resultado */}
+                <div className="vs-container-final">
+                  {isFinished ? (
+                    <div className="result-final">
+                      <span>{match.home_score}</span>
+                      <span className="vs-text-final">VS</span>
+                      <span>{match.away_score}</span>
+                    </div>
+                  ) : (
+                    <div className="prediction-final">
+                      <input
+                        type="number" min="0" max="20"
+                        value={pred?.home_score ?? ""}
+                        placeholder="0"
+                        onChange={(e) => handleScore(match.id, "home_score", e.target.value)}
+                        disabled={isLocked}
+                      />
+                      <span className="vs-final">VS</span>
+                      <input
+                        type="number" min="0" max="20"
+                        value={pred?.away_score ?? ""}
+                        placeholder="0"
+                        onChange={(e) => handleScore(match.id, "away_score", e.target.value)}
+                        disabled={isLocked}
+                      />
+                    </div>
+                  )}
+                  <div className="hour-final">{matchHour}</div>
+                </div>
+
+                {/* Equipo visitante */}
+                <div className="team-away-final">
+                  <div className="team-flag-final">{match.away_flag}</div>
+                  <div className="team-name-final">{match.away_team}</div>
+                </div>
+
+                {/* Información del partido */}
+                <div className="match-footer-final">
+                  <span className="stage-final">{match.group_name || "Primera fase"}</span>
+                  <span className="stadium-final">📍 {match.stadium || "Estadio"}</span>
                 </div>
 
                 {isLocked && !pred && (
-                  <div className="lock-warning-new">
+                  <div className="lock-final">
                     ⚠️ Partido bloqueado - ya no se puede pronosticar
                   </div>
                 )}
 
                 {result && (
-                  <div className="prediction-result">
+                  <div className="prediction-result-final">
                     <span>Tu predicción: {pred ? `${pred.home_score} - ${pred.away_score}` : "Sin predicción"}</span>
-                    <span className={`badge-new ${result.cls}`}>{result.label}</span>
+                    <span className={result.cls}>{result.label}</span>
                   </div>
                 )}
               </div>
@@ -208,8 +208,8 @@ export default function Predictions({ userId }) {
       ))}
 
       {matches.some((m) => !m.is_finished && !isMatchLocked(m.match_date)) && (
-        <button className="save-btn-new" onClick={savePredictions} disabled={saving}>
-          {saving ? "Guardando..." : saved ? "✓ Guardado" : "💾 Guardar todas las predicciones"}
+        <button className="save-btn-final" onClick={savePredictions} disabled={saving}>
+          {saving ? "Guardando..." : saved ? "✓ Guardado" : "💾 Guardar predicciones"}
         </button>
       )}
     </div>
