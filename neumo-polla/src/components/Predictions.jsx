@@ -56,24 +56,44 @@ export default function Predictions({ userId }) {
     }));
   }
 
-  async function savePredictions() {
-    setSaving(true);
-    const toUpsert = Object.values(predictions)
-      .filter((p) => p.home_score !== undefined && p.away_score !== undefined && p.home_score !== "" && p.away_score !== "")
-      .map((p) => ({
-        user_id: userId,
-        match_id: p.match_id,
-        home_score: parseInt(p.home_score),
-        away_score: parseInt(p.away_score),
-        points: p.points || 0,
-      }));
-    
-    await supabase.from("predictions").upsert(toUpsert, { onConflict: "user_id,match_id" });
+async function savePredictions() {
+  setSaving(true);
+  
+  // Filtrar pronósticos válidos
+  const toUpsert = Object.values(predictions)
+    .filter((p) => p.home_score !== undefined && p.away_score !== undefined && 
+            p.home_score !== "" && p.away_score !== "")
+    .map((p) => ({
+      user_id: userId,
+      match_id: p.match_id,
+      home_score: parseInt(p.home_score),
+      away_score: parseInt(p.away_score),
+    }));
+  
+  if (toUpsert.length === 0) {
+    alert("⚠️ No hay pronósticos para guardar. Ingresa al menos un resultado.");
     setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-    fetchData();
+    return;
   }
+
+  console.log("Guardando:", toUpsert); // Para depuración
+
+  const { data, error } = await supabase
+    .from("predictions")
+    .upsert(toUpsert, { onConflict: "user_id,match_id" });
+  
+  if (error) {
+    console.error("Error al guardar:", error);
+    alert("❌ Error al guardar: " + error.message);
+  } else {
+    console.log("Guardado exitoso:", data);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+    await fetchData(); // Recargar datos actualizados
+  }
+  
+  setSaving(false);
+}
 
   function isMatchLocked(matchDate) {
     const now = new Date();
