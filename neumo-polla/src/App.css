@@ -112,29 +112,78 @@ body {
 
 /* Match card */
 .match-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 1rem; margin-bottom: 8px; }
-.match-row { display: flex; align-items: center; gap: 8px; }
 
-/* Team names with flags */
-.team-name { 
-  flex: 1; 
-  font-size: 14px; 
-  font-weight: 500; 
-  color: var(--text); 
-  line-height: 1.3;
+/* NUEVOS ESTILOS PARA DISEÑO TIPO FIFA */
+.match-teams-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-.team-name.right { 
-  text-align: right; 
-  justify-content: flex-end;
-}
-.flag-icon {
-  font-size: 20px;
-  line-height: 1;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.score-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.team-home, .team-away {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-home {
+  justify-content: flex-start;
+}
+
+.team-away {
+  justify-content: flex-end;
+}
+
+.team-flag {
+  font-size: 28px;
+}
+
+.team-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.match-score-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 100px;
+}
+
+.match-hour {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.match-info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.match-stage {
+  background: var(--green-light);
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: var(--green-dark);
+}
+
+.match-stadium {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Score inputs */
 .score-inputs { display: flex; align-items: center; gap: 6px; }
 .score-inputs input {
   width: 44px; height: 40px; text-align: center; border-radius: var(--radius-sm);
@@ -149,11 +198,12 @@ body {
   cursor: not-allowed;
 }
 .dash { color: var(--text-faint); font-weight: 500; }
-.match-date { font-size: 11px; color: var(--text-faint); text-align: center; }
+
 .final-score { display: flex; align-items: center; gap: 6px; font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
 .score-home { color: var(--green-dark); }
 .score-dash { color: var(--text-faint); font-size: 16px; }
 .score-away { color: var(--red); }
+
 .match-result-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
 .pred-label { font-size: 12px; color: var(--text-muted); }
 
@@ -212,22 +262,24 @@ body {
 
 /* Responsive */
 @media (max-width: 480px) {
-  .team-name {
-    font-size: 11px;
+  .team-flag {
+    font-size: 20px;
   }
-  .flag-icon {
-    font-size: 14px;
+  .team-name {
+    font-size: 12px;
+  }
+  .match-score-area {
+    min-width: 70px;
   }
   .score-inputs input {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
   }
-  .final-score {
-    font-size: 18px;
-  }
-  .match-card {
-    padding: 12px;
+  .match-info {
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
   }
   .date-header {
     font-size: 16px;
@@ -242,5 +294,8 @@ body {
     width: 30px;
     height: 30px;
     font-size: 10px;
+  }
+  .match-card {
+    padding: 12px;
   }
 }
