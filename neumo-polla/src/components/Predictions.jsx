@@ -30,15 +30,16 @@ export default function Predictions({ userId }) {
     });
     setPredictions(predMap);
 
-    const { data: allPreds } = await supabase.from("predictions").select("user_id, points");
-    const totals = {};
-    (allPreds || []).forEach((p) => {
-      totals[p.user_id] = (totals[p.user_id] || 0) + (p.points || 0);
-    });
-    const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
-    const pos = sorted.findIndex(([id]) => id === userId) + 1;
+    // Obtener posición desde la vista leaderboard
+    const { data: leaderboard } = await supabase
+      .from("leaderboard")
+      .select("user_id, rank")
+      .order("total_points", { ascending: false });
+    
+    const userRank = leaderboard?.findIndex((l) => l.user_id === userId) ?? -1;
+    const position = userRank >= 0 ? userRank + 1 : "-";
 
-    setMyStats({ points: totalPoints, exact: exactCount, position: pos || "-" });
+    setMyStats({ points: totalPoints, exact: exactCount, position });
     setLoading(false);
   }
 
@@ -60,6 +61,7 @@ export default function Predictions({ userId }) {
         away_score: parseInt(p.away_score),
         points: p.points || 0,
       }));
+    
     await supabase.from("predictions").upsert(toUpsert, { onConflict: "user_id,match_id" });
     setSaving(false);
     setSaved(true);
@@ -67,9 +69,18 @@ export default function Predictions({ userId }) {
     fetchData();
   }
 
+  function isMatchLocked(matchDate) {
+    // Bloquear 1 hora antes del partido
+    const now = new Date();
+    const matchTime = new Date(matchDate);
+    const oneHourBefore = new Date(matchTime.getTime() - 60 * 60 * 1000);
+    return now >= oneHourBefore;
+  }
+
   function getResultLabel(pred, match) {
     if (!match.is_finished) return null;
     if (pred?.points === 3) return { label: "Exacto +3pts", cls: "badge-exact" };
+    if (pred?.points === 2) return { label: "Diferencia exacta +2pts", cls: "badge-exact" };
     if (pred?.points === 1) return { label: "Ganador +1pt", cls: "badge-win" };
     if (pred) return { label: "Fallaste 0pts", cls: "badge-miss" };
     return { label: "Sin predicción", cls: "badge-miss" };
@@ -91,7 +102,7 @@ export default function Predictions({ userId }) {
           <div className="stat-lbl">exactos</div>
         </div>
         <div className="stat-card">
-          <div className="stat-num">{myStats.position === 0 ? "-" : `${myStats.position}°`}</div>
+          <div className="stat-num">{myStats.position === "-" ? "-" : `${myStats.position}°`}</div>
           <div className="stat-lbl">posición</div>
         </div>
       </div>
@@ -103,6 +114,9 @@ export default function Predictions({ userId }) {
             const pred = predictions[match.id];
             const result = getResultLabel(pred, match);
             const isFinished = match.is_finished;
+            const isLocked = !isFinished && isMatchLocked(match.match_date);
+            const showLockWarning = isLocked && !pred;
+            
             return (
               <div className="match-card" key={match.id}>
                 <div className="match-row">
@@ -121,6 +135,8 @@ export default function Predictions({ userId }) {
                           value={pred?.home_score ?? ""}
                           placeholder="0"
                           onChange={(e) => handleScore(match.id, "home_score", e.target.value)}
+                          disabled={isLocked}
+                          style={isLocked ? { opacity: 0.6, cursor: "not-allowed" } : {}}
                         />
                         <span className="dash">-</span>
                         <input
@@ -128,6 +144,8 @@ export default function Predictions({ userId }) {
                           value={pred?.away_score ?? ""}
                           placeholder="0"
                           onChange={(e) => handleScore(match.id, "away_score", e.target.value)}
+                          disabled={isLocked}
+                          style={isLocked ? { opacity: 0.6, cursor: "not-allowed" } : {}}
                         />
                       </div>
                     )}
@@ -137,6 +155,13 @@ export default function Predictions({ userId }) {
                   </div>
                   <div className="team-name right">{match.away_flag} {match.away_team}</div>
                 </div>
+                {showLockWarning && (
+                  <div className="match-result-row" style={{ justifyContent: "center" }}>
+                    <span className="badge badge-miss" style={{ background: "#fde8e8", color: "#c0392b" }}>
+                      ⚠️ Partido bloqueado - ya no se puede pronosticar
+                    </span>
+                  </div>
+                )}
                 {result && (
                   <div className="match-result-row">
                     <span className="pred-label">
@@ -151,11 +176,19 @@ export default function Predictions({ userId }) {
         </div>
       ))}
 
-      {matches.some((m) => !m.is_finished) && (
+      {matches.some((m) => !m.is_finished && !isMatchLocked(m.match_date)) && (
         <button className="save-btn" onClick={savePredictions} disabled={saving}>
           {saving ? "Guardando..." : saved ? "✓ Guardado" : "Guardar predicciones"}
         </button>
       )}
     </div>
   );
+}
+
+// Función auxiliar para verificar si un partido está bloqueado
+function isMatchLocked(matchDate) {
+  const now = new Date();
+  const matchTime = new Date(matchDate);
+  const oneHourBefore = new Date(matchTime.getTime() - 60 * 60 * 1000);
+  return now >= oneHourBefore;
 }

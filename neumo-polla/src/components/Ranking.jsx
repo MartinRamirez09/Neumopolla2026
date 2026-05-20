@@ -12,22 +12,16 @@ export default function Ranking({ userId }) {
 
   async function fetchRanking() {
     setLoading(true);
-    const { data: profiles } = await supabase.from("profiles").select("id, full_name, avatar_url");
-    const { data: predictions } = await supabase.from("predictions").select("user_id, points");
+    
+    // Usar la vista leaderboard
+    const { data: leaderboard } = await supabase
+      .from("leaderboard")
+      .select("*");
+    
     const { data: matches } = await supabase.from("matches").select("id, is_finished");
+    const { data: profiles } = await supabase.from("profiles").select("id");
 
-    const totals = {};
-    const exactCounts = {};
-    (predictions || []).forEach((p) => {
-      totals[p.user_id] = (totals[p.user_id] || 0) + (p.points || 0);
-      if (p.points === 3) exactCounts[p.user_id] = (exactCounts[p.user_id] || 0) + 1;
-    });
-
-    const ranked = (profiles || [])
-      .map((p) => ({ ...p, points: totals[p.id] || 0, exact: exactCounts[p.id] || 0 }))
-      .sort((a, b) => b.points - a.points || b.exact - a.exact);
-
-    setRanking(ranked);
+    setRanking(leaderboard || []);
     setStats({
       total: profiles?.length || 0,
       played: matches?.filter((m) => m.is_finished).length || 0,
@@ -75,10 +69,10 @@ export default function Ranking({ userId }) {
         {ranking.length === 0 && <p className="empty-msg">Aún no hay participantes registrados.</p>}
         {ranking.map((person, idx) => {
           const colorIdx = idx % avatarColors.length;
-          const isMe = person.id === userId;
+          const isMe = person.user_id === userId;
           return (
-            <div className={`ranking-row ${isMe ? "ranking-row-me" : ""}`} key={person.id}>
-              <div className="ranking-pos">{getMedal(idx + 1)}</div>
+            <div className={`ranking-row ${isMe ? "ranking-row-me" : ""}`} key={person.user_id}>
+              <div className="ranking-pos">{getMedal(person.rank || idx + 1)}</div>
               <div className="avatar" style={{ background: avatarColors[colorIdx], color: textColors[colorIdx] }}>
                 {getInitials(person.full_name)}
               </div>
@@ -87,7 +81,7 @@ export default function Ranking({ userId }) {
                 {isMe && <span className="you-badge">tú</span>}
               </div>
               <div className="ranking-pts-wrap">
-                <div className="ranking-pts">{person.points}</div>
+                <div className="ranking-pts">{person.total_points}</div>
                 <div className="ranking-pts-lbl">pts</div>
               </div>
             </div>
@@ -98,6 +92,7 @@ export default function Ranking({ userId }) {
       <div className="ranking-card" style={{ marginTop: "12px" }}>
         <p className="section-label">Sistema de puntuación</p>
         <div className="scoring-row"><span>Resultado exacto (ej. 2-1)</span><span className="badge badge-exact">+3 pts</span></div>
+        <div className="scoring-row"><span>Diferencia exacta (ej. 2-0 y 3-1)</span><span className="badge badge-exact">+2 pts</span></div>
         <div className="scoring-row"><span>Ganador/empate correcto</span><span className="badge badge-win">+1 pt</span></div>
         <div className="scoring-row"><span>Predicción incorrecta</span><span className="badge badge-miss">0 pts</span></div>
       </div>
