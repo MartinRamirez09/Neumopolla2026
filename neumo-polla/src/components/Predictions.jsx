@@ -15,8 +15,15 @@ export default function Predictions({ userId }) {
 
   async function fetchData() {
     setLoading(true);
-    const { data: matchData } = await supabase.from("matches").select("*").order("match_date");
-    const { data: predData } = await supabase.from("predictions").select("*").eq("user_id", userId);
+    const { data: matchData } = await supabase
+      .from("matches")
+      .select("*")
+      .order("match_date", { ascending: true });
+
+    const { data: predData } = await supabase
+      .from("predictions")
+      .select("*")
+      .eq("user_id", userId);
 
     setMatches(matchData || []);
 
@@ -70,7 +77,7 @@ export default function Predictions({ userId }) {
   }
 
   function isMatchLocked(matchDate) {
-    // Bloquear 1 hora antes del partido
+    // Bloquear 1 hora antes del partido (hora Colombia)
     const now = new Date();
     const matchTime = new Date(matchDate);
     const oneHourBefore = new Date(matchTime.getTime() - 60 * 60 * 1000);
@@ -86,7 +93,19 @@ export default function Predictions({ userId }) {
     return { label: "Sin predicción", cls: "badge-miss" };
   }
 
-  const groups = [...new Set((matches || []).map((m) => m.group_name))];
+  // 🔥 AGRUPAR PARTIDOS POR FECHA 🔥
+  const groupedByDate = matches.reduce((acc, match) => {
+    if (!match.match_date) return acc;
+    const date = new Date(match.match_date);
+    const dateKey = date.toLocaleDateString('es-CO', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    });
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(match);
+    return acc;
+  }, {});
 
   if (loading) return <div className="loading-inline">Cargando partidos...</div>;
 
@@ -107,10 +126,12 @@ export default function Predictions({ userId }) {
         </div>
       </div>
 
-      {groups.map((group) => (
-        <div key={group}>
-          <p className="group-title">{group}</p>
-          {matches.filter((m) => m.group_name === group).map((match) => {
+      {Object.entries(groupedByDate).map(([date, dateMatches]) => (
+        <div key={date}>
+          <h2 className="text-xl font-bold mt-6 mb-3 text-green-700 border-b pb-1">
+            📅 {date.charAt(0).toUpperCase() + date.slice(1)}
+          </h2>
+          {dateMatches.map((match) => {
             const pred = predictions[match.id];
             const result = getResultLabel(pred, match);
             const isFinished = match.is_finished;
@@ -120,7 +141,9 @@ export default function Predictions({ userId }) {
             return (
               <div className="match-card" key={match.id}>
                 <div className="match-row">
-                  <div className="team-name">{match.home_flag} {match.home_team}</div>
+                  <div className="team-name">
+                    <span className="text-xl mr-1">{match.home_flag}</span> {match.home_team}
+                  </div>
                   <div className="score-center">
                     {isFinished ? (
                       <div className="final-score">
@@ -150,10 +173,12 @@ export default function Predictions({ userId }) {
                       </div>
                     )}
                     <div className="match-date">
-                      {match.match_date ? new Date(match.match_date).toLocaleDateString("es-CO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Por definir"}
+                      {match.match_date ? new Date(match.match_date).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : ""}
                     </div>
                   </div>
-                  <div className="team-name right">{match.away_flag} {match.away_team}</div>
+                  <div className="team-name right">
+                    {match.away_team} <span className="text-xl ml-1">{match.away_flag}</span>
+                  </div>
                 </div>
                 {showLockWarning && (
                   <div className="match-result-row" style={{ justifyContent: "center" }}>
@@ -183,12 +208,4 @@ export default function Predictions({ userId }) {
       )}
     </div>
   );
-}
-
-// Función auxiliar para verificar si un partido está bloqueado
-function isMatchLocked(matchDate) {
-  const now = new Date();
-  const matchTime = new Date(matchDate);
-  const oneHourBefore = new Date(matchTime.getTime() - 60 * 60 * 1000);
-  return now >= oneHourBefore;
 }
