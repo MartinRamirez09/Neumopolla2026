@@ -13,17 +13,32 @@ export default function Ranking({ userId }) {
   async function fetchRanking() {
     setLoading(true);
     
-    // Usar la vista leaderboard
+    // Obtener datos de la vista leaderboard
     const { data: leaderboard } = await supabase
       .from("leaderboard")
       .select("*");
     
+    // Obtener también el área de cada usuario desde profiles
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, area, full_name");
+    
     const { data: matches } = await supabase.from("matches").select("id, is_finished");
-    const { data: profiles } = await supabase.from("profiles").select("id");
+    const { data: allProfiles } = await supabase.from("profiles").select("id");
 
-    setRanking(leaderboard || []);
+    // Combinar leaderboard con áreas
+    const enrichedRanking = (leaderboard || []).map(user => {
+      const profile = profiles?.find(p => p.user_id === user.user_id);
+      return {
+        ...user,
+        area: profile?.area || "",
+        full_name: user.full_name || profile?.full_name || "Colaborador"
+      };
+    });
+
+    setRanking(enrichedRanking);
     setStats({
-      total: profiles?.length || 0,
+      total: allProfiles?.length || 0,
       played: matches?.filter((m) => m.is_finished).length || 0,
       pending: matches?.filter((m) => !m.is_finished).length || 0,
     });
@@ -33,6 +48,13 @@ export default function Ranking({ userId }) {
   function getInitials(name) {
     if (!name) return "??";
     return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  }
+
+  function getDisplayName(user) {
+    if (user.area && user.area.trim() !== "") {
+      return `${user.full_name} - ${user.area}`;
+    }
+    return user.full_name;
   }
 
   function getMedal(pos) {
@@ -65,19 +87,21 @@ export default function Ranking({ userId }) {
       </div>
 
       <div className="ranking-card">
-        <p className="section-label">Tabla de posiciones</p>
+        <p className="section-label">🏆 Tabla de posiciones</p>
         {ranking.length === 0 && <p className="empty-msg">Aún no hay participantes registrados.</p>}
         {ranking.map((person, idx) => {
           const colorIdx = idx % avatarColors.length;
           const isMe = person.user_id === userId;
+          const displayName = getDisplayName(person);
+          
           return (
             <div className={`ranking-row ${isMe ? "ranking-row-me" : ""}`} key={person.user_id}>
-              <div className="ranking-pos">{getMedal(person.rank || idx + 1)}</div>
+              <div className="ranking-pos">{getMedal(idx + 1)}</div>
               <div className="avatar" style={{ background: avatarColors[colorIdx], color: textColors[colorIdx] }}>
                 {getInitials(person.full_name)}
               </div>
               <div className="ranking-name">
-                {person.full_name || "Colaborador"}
+                <span className="ranking-name-text">{displayName}</span>
                 {isMe && <span className="you-badge">tú</span>}
               </div>
               <div className="ranking-pts-wrap">
@@ -90,11 +114,23 @@ export default function Ranking({ userId }) {
       </div>
 
       <div className="ranking-card" style={{ marginTop: "12px" }}>
-        <p className="section-label">Sistema de puntuación</p>
-        <div className="scoring-row"><span>Resultado exacto (ej. 2-1)</span><span className="badge badge-exact">+3 pts</span></div>
-        <div className="scoring-row"><span>Diferencia exacta (ej. 2-0 y 3-1)</span><span className="badge badge-exact">+2 pts</span></div>
-        <div className="scoring-row"><span>Ganador/empate correcto</span><span className="badge badge-win">+1 pt</span></div>
-        <div className="scoring-row"><span>Predicción incorrecta</span><span className="badge badge-miss">0 pts</span></div>
+        <p className="section-label">📊 Sistema de puntuación</p>
+        <div className="scoring-row">
+          <span>Resultado exacto (ej. 2-1)</span>
+          <span className="badge badge-exact">+3 pts</span>
+        </div>
+        <div className="scoring-row">
+          <span>Diferencia exacta (ej. 2-0 y 3-1)</span>
+          <span className="badge badge-exact">+2 pts</span>
+        </div>
+        <div className="scoring-row">
+          <span>Ganador/empate correcto</span>
+          <span className="badge badge-win">+1 pt</span>
+        </div>
+        <div className="scoring-row">
+          <span>Predicción incorrecta</span>
+          <span className="badge badge-miss">0 pts</span>
+        </div>
       </div>
     </div>
   );
