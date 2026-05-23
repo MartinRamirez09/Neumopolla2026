@@ -50,7 +50,6 @@ export default function Admin({ user, onStatsUpdate }) {
       const hs = parseInt(result.home_score);
       const as = parseInt(result.away_score);
       
-      // Solo actualizar el partido - el trigger calcula los puntos automáticamente
       const { error } = await supabase
         .from("matches")
         .update({ 
@@ -100,7 +99,7 @@ export default function Admin({ user, onStatsUpdate }) {
       .eq("id", matchId);
     
     if (!error) {
-      setMessage({ text: "✅ Partido reabierto. Los puntos serán recalculados al cargar nuevo resultado.", type: "success" });
+      setMessage({ text: "✅ Partido reabierto.", type: "success" });
       fetchData();
     }
   }
@@ -170,18 +169,18 @@ export default function Admin({ user, onStatsUpdate }) {
                 </div>
               </div>
               <div className="admin-match-info">
-                {match.match_date && new Date(match.match_date).toLocaleDateString("es-CO", { 
+                📅 {match.match_date ? new Date(match.match_date).toLocaleString("es-CO", { 
                   day: "numeric", 
                   month: "short", 
                   hour: "2-digit", 
                   minute: "2-digit" 
-                })}
+                }) : "Fecha por definir"}
               </div>
             </div>
           ))}
 
-          <button className="save-btn" onClick={saveResults} disabled={saving}>
-            {saving ? "Guardando y calculando puntos..." : saved ? "✓ Publicado" : "📢 Publicar resultados (calcula puntos automáticamente)"}
+          <button className="save-btn-final" onClick={saveResults} disabled={saving}>
+            {saving ? "Guardando y calculando puntos..." : saved ? "✓ Publicado" : "📢 Publicar resultados"}
           </button>
         </>
       )}
