@@ -13,30 +13,19 @@ export default function Ranking({ userId }) {
   async function fetchRanking() {
     setLoading(true);
     
-    // Obtener datos de la vista leaderboard
-    const { data: leaderboard } = await supabase
+    // Obtener datos de la vista leaderboard (ahora con área incluida)
+    const { data: leaderboard, error } = await supabase
       .from("leaderboard")
       .select("*");
     
-    // Obtener también el área de cada usuario desde profiles
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("user_id, area, full_name");
+    if (error) {
+      console.error("Error fetching leaderboard:", error);
+    }
     
     const { data: matches } = await supabase.from("matches").select("id, is_finished");
     const { data: allProfiles } = await supabase.from("profiles").select("id");
 
-    // Combinar leaderboard con áreas
-    const enrichedRanking = (leaderboard || []).map(user => {
-      const profile = profiles?.find(p => p.user_id === user.user_id);
-      return {
-        ...user,
-        area: profile?.area || "",
-        full_name: user.full_name || profile?.full_name || "Colaborador"
-      };
-    });
-
-    setRanking(enrichedRanking);
+    setRanking(leaderboard || []);
     setStats({
       total: allProfiles?.length || 0,
       played: matches?.filter((m) => m.is_finished).length || 0,
@@ -54,14 +43,14 @@ export default function Ranking({ userId }) {
     if (user.area && user.area.trim() !== "") {
       return `${user.full_name} - ${user.area}`;
     }
-    return user.full_name;
+    return user.full_name || "Colaborador";
   }
 
   function getMedal(pos) {
     if (pos === 1) return "🥇";
     if (pos === 2) return "🥈";
     if (pos === 3) return "🥉";
-    return pos;
+    return `${pos}°`;
   }
 
   const avatarColors = ["#EAF3DE", "#E6F1FB", "#FAEEDA", "#FBEAF0", "#EEEDFE", "#E1F5EE"];
@@ -101,11 +90,16 @@ export default function Ranking({ userId }) {
                 {getInitials(person.full_name)}
               </div>
               <div className="ranking-name">
-                <span className="ranking-name-text">{displayName}</span>
-                {isMe && <span className="you-badge">tú</span>}
+                <div className="ranking-name-main">
+                  <span className="ranking-name-text">{displayName}</span>
+                  {isMe && <span className="you-badge">tú</span>}
+                </div>
+                <div className="ranking-stats">
+                  <span className="ranking-predictions">{person.total_predictions || 0} pronósticos</span>
+                </div>
               </div>
               <div className="ranking-pts-wrap">
-                <div className="ranking-pts">{person.total_points}</div>
+                <div className="ranking-pts">{person.total_points || 0}</div>
                 <div className="ranking-pts-lbl">pts</div>
               </div>
             </div>
