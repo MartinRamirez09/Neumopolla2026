@@ -8,6 +8,7 @@ export default function ProfileSetup({ user, onProfileUpdated }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [initialName, setInitialName] = useState("");
 
   useEffect(() => {
     checkProfile();
@@ -20,14 +21,23 @@ export default function ProfileSetup({ user, onProfileUpdated }) {
       .eq("id", user.id)
       .single();
 
-    if (data && data.full_name && data.full_name !== user.email?.split("@")[0]) {
-      // Ya tiene nombre completo, no mostrar formulario
-      setShowForm(false);
-      if (onProfileUpdated) onProfileUpdated();
+    // Extraer nombre base del email (ej: "martinramirez" de "martinramirez@gmail.com")
+    const emailName = user.email?.split("@")[0] || "";
+    setInitialName(emailName);
+
+    if (data) {
+      // Si el nombre guardado es el mismo que el del email (o está vacío), mostrar formulario
+      if (!data.full_name || data.full_name === emailName) {
+        setFullName("");
+        setArea(data.area || "");
+        setShowForm(true);
+      } else {
+        // Ya tiene un nombre personalizado
+        setShowForm(false);
+        if (onProfileUpdated) onProfileUpdated();
+      }
     } else {
-      // Mostrar formulario
-      setFullName(data?.full_name || "");
-      setArea(data?.area || "");
+      // No hay perfil, mostrar formulario
       setShowForm(true);
     }
   }
@@ -85,6 +95,9 @@ export default function ProfileSetup({ user, onProfileUpdated }) {
             className="profile-input"
             autoFocus
           />
+          <small style={{ fontSize: "10px", color: "var(--text-faint)" }}>
+            Actualmente usas: {initialName || "sin nombre"}
+          </small>
         </div>
 
         <div className="form-group">
