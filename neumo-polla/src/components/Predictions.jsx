@@ -1,14 +1,14 @@
-import "./Predictions.css";
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import "./Predictions.css";
 
 export default function Predictions({ userId }) {
   const [matches, setMatches] = useState([]);
   const [predictions, setPredictions] = useState({});
+  const [saving, setSaving] = useState({});
   const [myStats, setMyStats] = useState({ points: 0, exact: 0, position: "-" });
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState({});
 
   useEffect(() => {
     fetchData();
@@ -53,48 +53,54 @@ export default function Predictions({ userId }) {
   function handleScore(matchId, side, value) {
     setPredictions((prev) => ({
       ...prev,
-      [matchId]: { ...prev[matchId], match_id: matchId, [side]: value === "" ? "" : parseInt(value) },
+      [matchId]: { 
+        ...prev[matchId], 
+        match_id: matchId, 
+        [side]: value === "" ? "" : parseInt(value) 
+      },
     }));
+    if (message[matchId]) {
+      setMessage(prev => ({ ...prev, [matchId]: null }));
+    }
   }
 
-async function savePredictions() {
-  setSaving(true);
-  
-  // Filtrar pronósticos válidos
-  const toUpsert = Object.values(predictions)
-    .filter((p) => p.home_score !== undefined && p.away_score !== undefined && 
-            p.home_score !== "" && p.away_score !== "")
-    .map((p) => ({
-      user_id: userId,
-      match_id: p.match_id,
-      home_score: parseInt(p.home_score),
-      away_score: parseInt(p.away_score),
-    }));
-  
-  if (toUpsert.length === 0) {
-    alert("⚠️ No hay pronósticos para guardar. Ingresa al menos un resultado.");
-    setSaving(false);
-    return;
-  }
+  async function savePrediction(matchId, homeScore, awayScore) {
+    if (homeScore === undefined || homeScore === "" || awayScore === undefined || awayScore === "") {
+      setMessage(prev => ({ 
+        ...prev, 
+        [matchId]: { text: "⚠️ Ingresa ambos resultados", type: "error" } 
+      }));
+      setTimeout(() => setMessage(prev => ({ ...prev, [matchId]: null })), 3000);
+      return;
+    }
 
-  console.log("Guardando:", toUpsert); // Para depuración
+    setSaving(prev => ({ ...prev, [matchId]: true }));
 
-  const { data, error } = await supabase
-    .from("predictions")
-    .upsert(toUpsert, { onConflict: "user_id,match_id" });
-  
-  if (error) {
-    console.error("Error al guardar:", error);
-    alert("❌ Error al guardar: " + error.message);
-  } else {
-    console.log("Guardado exitoso:", data);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-    await fetchData(); // Recargar datos actualizados
+    const { error } = await supabase
+      .from("predictions")
+      .upsert({
+        user_id: userId,
+        match_id: matchId,
+        home_score: parseInt(homeScore),
+        away_score: parseInt(awayScore),
+      }, { onConflict: "user_id,match_id" });
+
+    if (error) {
+      setMessage(prev => ({ 
+        ...prev, 
+        [matchId]: { text: "❌ Error al guardar", type: "error" } 
+      }));
+    } else {
+      setMessage(prev => ({ 
+        ...prev, 
+        [matchId]: { text: "✅ Pronóstico guardado", type: "success" } 
+      }));
+      await fetchData();
+      setTimeout(() => setMessage(prev => ({ ...prev, [matchId]: null })), 2000);
+    }
+
+    setSaving(prev => ({ ...prev, [matchId]: false }));
   }
-  
-  setSaving(false);
-}
 
   function isMatchLocked(matchDate) {
     const now = new Date();
@@ -112,7 +118,6 @@ async function savePredictions() {
     return { label: "Sin predicción", cls: "badge-new badge-miss" };
   }
 
-  // Agrupar por fecha
   const groupedByDate = matches.reduce((acc, match) => {
     if (!match.match_date) return acc;
     const date = new Date(match.match_date);
@@ -130,7 +135,6 @@ async function savePredictions() {
 
   return (
     <div>
-      {/* Stats */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-num">{myStats.points}</div>
@@ -146,12 +150,9 @@ async function savePredictions() {
         </div>
       </div>
 
-      {/* Partidos */}
       {Object.entries(groupedByDate).map(([date, dateMatches]) => (
         <div key={date}>
-          <h2 className="date-header">
-            📅 {date.charAt(0).toUpperCase() + date.slice(1)}
-          </h2>
+          <h2 className="date-header">📅 {date.charAt(0).toUpperCase() + date.slice(1)}</h2>
           
           {dateMatches.map((match) => {
             const pred = predictions[match.id];
@@ -159,16 +160,17 @@ async function savePredictions() {
             const isFinished = match.is_finished;
             const isLocked = !isFinished && isMatchLocked(match.match_date);
             const matchHour = new Date(match.match_date).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+            const isSaving = saving[match.id];
+            const msg = message[match.id];
+            const hasPrediction = pred?.home_score !== undefined && pred?.home_score !== "";
             
             return (
               <div className="match-card-final" key={match.id}>
-                {/* Equipo local */}
                 <div className="team-home-final">
                   <div className="team-flag-final">{match.home_flag}</div>
                   <div className="team-name-final">{match.home_team}</div>
                 </div>
 
-                {/* VS y resultado */}
                 <div className="vs-container-final">
                   {isFinished ? (
                     <div className="result-final">
@@ -198,23 +200,33 @@ async function savePredictions() {
                   <div className="hour-final">{matchHour}</div>
                 </div>
 
-                {/* Equipo visitante */}
                 <div className="team-away-final">
                   <div className="team-flag-final">{match.away_flag}</div>
                   <div className="team-name-final">{match.away_team}</div>
                 </div>
 
-                {/* Información del partido */}
+                {!isFinished && !isLocked && (
+                  <button 
+                    className="predict-save-btn"
+                    onClick={() => savePrediction(match.id, pred?.home_score, pred?.away_score)}
+                    disabled={isSaving || (!pred?.home_score && !pred?.away_score)}
+                  >
+                    {isSaving ? "Guardando..." : hasPrediction ? "✏️ Actualizar" : "💾 Guardar"}
+                  </button>
+                )}
+
+                {isLocked && !pred && (
+                  <div className="lock-final">⚠️ Partido bloqueado - ya no se puede pronosticar</div>
+                )}
+
+                {msg && (
+                  <div className={`predict-message ${msg.type}`}>{msg.text}</div>
+                )}
+
                 <div className="match-footer-final">
                   <span className="stage-final">{match.group_name || "Primera fase"}</span>
                   <span className="stadium-final">📍 {match.stadium || "Estadio"}</span>
                 </div>
-
-                {isLocked && !pred && (
-                  <div className="lock-final">
-                    ⚠️ Partido bloqueado - ya no se puede pronosticar
-                  </div>
-                )}
 
                 {result && (
                   <div className="prediction-result-final">
@@ -227,12 +239,6 @@ async function savePredictions() {
           })}
         </div>
       ))}
-
-      {matches.some((m) => !m.is_finished && !isMatchLocked(m.match_date)) && (
-        <button className="save-btn-final" onClick={savePredictions} disabled={saving}>
-          {saving ? "Guardando..." : saved ? "✓ Guardado" : "💾 Guardar predicciones"}
-        </button>
-      )}
     </div>
   );
 }
