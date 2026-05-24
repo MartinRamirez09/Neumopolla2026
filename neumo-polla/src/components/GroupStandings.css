@@ -1,0 +1,61 @@
+.standings-container {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+}
+
+.standings-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--green-dark);
+  font-family: 'Syne', sans-serif;
+}
+
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.standings-table th,
+.standings-table td {
+  padding: 8px 4px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.standings-table th {
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-weight: 600;
+}
+
+.standings-team {
+  text-align: left;
+  font-weight: 500;
+}
+
+.standings-points {
+  font-weight: 700;
+  color: var(--green-dark);
+}
+
+.positive {
+  color: var(--green-dark);
+}
+
+.negative {
+  color: var(--red);
+}
+
+.standings-loading,
+.standings-empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
