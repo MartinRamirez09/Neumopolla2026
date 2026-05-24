@@ -1,119 +1,215 @@
-/* Groups Page */
-.group-selector-mobile {
+/* Groups Container */
+.groups-container {
+  width: 100%;
+}
+
+/* Navegación móvil */
+.groups-mobile-nav {
   display: none;
   gap: 8px;
   overflow-x: auto;
   margin-bottom: 16px;
   padding-bottom: 8px;
+  scrollbar-width: thin;
 }
 
-.group-btn {
+.group-nav-btn {
   padding: 8px 16px;
   background: white;
   border: 1px solid var(--border);
   border-radius: 30px;
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
 }
 
-.group-btn.active {
+.group-nav-btn.active {
   background: var(--green);
   color: white;
   border-color: var(--green);
 }
 
+/* Grid desktop */
 .groups-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
-.group-mobile-view {
+/* Vista móvil */
+.groups-mobile-view {
   display: none;
 }
 
+/* Tarjeta de grupo */
 .group-card {
   background: white;
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: var(--shadow);
   border: 1px solid var(--border);
-  overflow-x: auto;
+  margin-bottom: 0;
 }
 
-.group-title {
-  font-size: 16px;
+.group-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--green-light);
+}
+
+.group-icon {
+  font-size: 24px;
+}
+
+.group-name {
+  font-size: 18px;
   font-weight: 700;
-  margin-bottom: 12px;
   color: var(--green-dark);
-  border-left: 4px solid var(--green);
-  padding-left: 10px;
+  font-family: 'Syne', sans-serif;
+  margin: 0;
 }
 
-.table-wrapper {
-  overflow-x: auto;
+/* Lista de equipos */
+.group-teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.group-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
-  min-width: 550px;
-}
-
-.group-table th,
-.group-table td {
-  padding: 8px 4px;
-  text-align: center;
+.group-team-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
   border-bottom: 1px solid var(--border);
 }
 
-.group-table th {
-  background: var(--green-light);
-  color: var(--green-dark);
-  font-weight: 600;
+.group-team-row:last-child {
+  border-bottom: none;
 }
 
-.team-cell {
+/* Posición */
+.team-rank {
+  width: 32px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Info del equipo */
+.team-info {
+  flex: 2;
   display: flex;
   align-items: center;
-  gap: 6px;
-  text-align: left;
+  gap: 10px;
 }
 
 .team-flag {
-  font-size: 16px;
+  font-size: 24px;
 }
 
 .team-name {
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.dg-positive {
-  color: var(--green-dark);
+  font-size: 13px;
   font-weight: 600;
+  color: var(--text);
 }
 
-.dg-negative {
-  color: var(--red);
-  font-weight: 600;
+/* Estadísticas */
+.team-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.pts {
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 36px;
+}
+
+.stat-value {
+  font-size: 13px;
   font-weight: 700;
-  color: var(--green-dark);
-  font-size: 12px;
+  font-family: 'Syne', sans-serif;
+  color: var(--text);
 }
 
+.stat-label {
+  font-size: 8px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.stat-item.diff .stat-value {
+  font-weight: 700;
+}
+
+.stat-item.diff .positive {
+  color: var(--green-dark);
+}
+
+.stat-item.diff .negative {
+  color: var(--red);
+}
+
+.stat-item.points .stat-value {
+  color: var(--green-dark);
+  font-size: 15px;
+}
+
+.group-empty {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .groups-grid {
     display: none;
   }
-  .group-mobile-view {
+  
+  .groups-mobile-view {
     display: block;
   }
-  .group-selector-mobile {
+  
+  .groups-mobile-nav {
     display: flex;
+  }
+  
+  .team-stats {
+    gap: 4px;
+  }
+  
+  .stat-item {
+    min-width: 30px;
+  }
+  
+  .stat-value {
+    font-size: 11px;
+  }
+  
+  .team-flag {
+    font-size: 20px;
+  }
+  
+  .team-name {
+    font-size: 11px;
+  }
+  
+  .team-rank {
+    width: 28px;
+    font-size: 12px;
   }
 }

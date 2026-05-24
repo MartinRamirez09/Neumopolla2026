@@ -50,77 +50,93 @@ export default function GroupStandings() {
     setLoading(false);
   }
 
-  if (loading) return <div className="loading-inline">Cargando posiciones...</div>;
+  if (loading) return <div className="loading-inline">⚽ Cargando posiciones...</div>;
 
   return (
-    <div>
-      {/* Selector móvil */}
-      <div className="group-selector-mobile">
+    <div className="groups-container">
+      {/* Selector de grupos (solo móvil) */}
+      <div className="groups-mobile-nav">
         {GROUPS.map(group => (
-          <button key={group} className={`group-btn ${selectedGroup === group ? "active" : ""}`} onClick={() => setSelectedGroup(group)}>
+          <button key={group} className={`group-nav-btn ${selectedGroup === group ? "active" : ""}`} onClick={() => setSelectedGroup(group)}>
             {group}
           </button>
         ))}
       </div>
 
-      {/* Vista desktop: grid */}
+      {/* Grid de grupos (desktop) */}
       <div className="groups-grid">
         {GROUPS.map(group => (
-          <GroupTable key={group} groupName={group} teams={standings[group] || []} />
+          <GroupCard key={group} groupName={group} teams={standings[group] || []} />
         ))}
       </div>
 
-      {/* Vista móvil: solo uno */}
-      <div className="group-mobile-view">
-        <GroupTable groupName={selectedGroup} teams={standings[selectedGroup] || []} />
+      {/* Vista móvil: solo grupo seleccionado */}
+      <div className="groups-mobile-view">
+        <GroupCard groupName={selectedGroup} teams={standings[selectedGroup] || []} />
       </div>
     </div>
   );
 }
 
-function GroupTable({ groupName, teams }) {
+function GroupCard({ groupName, teams }) {
   return (
     <div className="group-card">
-      <h3 className="group-title">📊 {groupName}</h3>
-      <div className="table-wrapper">
-        <table className="group-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Equipo</th>
-              <th>PJ</th>
-              <th>G</th>
-              <th>E</th>
-              <th>P</th>
-              <th>GF</th>
-              <th>GC</th>
-              <th>DG</th>
-              <th>Pts</th>
-            </tr>
-          </thead>
-          <tbody>
-            {teams.map((team, idx) => (
-              <tr key={team.team}>
-                <td>{idx + 1}</td>
-                <td className="team-cell">
-                  <span className="team-flag">{TEAM_FLAGS[team.team] || "⚽"}</span>
-                  <span className="team-name">{team.team}</span>
-                </td>
-                <td>{team.played}</td>
-                <td>{team.wins}</td>
-                <td>{team.draws}</td>
-                <td>{team.losses}</td>
-                <td>{team.goals_for}</td>
-                <td>{team.goals_against}</td>
-                <td className={team.goal_difference >= 0 ? "dg-positive" : "dg-negative"}>
-                  {team.goal_difference >= 0 ? `+${team.goal_difference}` : team.goal_difference}
-                </td>
-                <td className="pts">{team.points}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="group-card-header">
+        <span className="group-icon">📊</span>
+        <h3 className="group-name">{groupName}</h3>
       </div>
+      
+      {teams.length === 0 ? (
+        <div className="group-empty">Sin datos de equipos</div>
+      ) : (
+        <div className="group-teams-list">
+          {teams.map((team, idx) => (
+            <div key={team.team} className="group-team-row">
+              <div className="team-rank">{idx + 1}</div>
+              <div className="team-info">
+                <span className="team-flag">{TEAM_FLAGS[team.team] || "⚽"}</span>
+                <span className="team-name">{team.team}</span>
+              </div>
+              <div className="team-stats">
+                <div className="stat-item">
+                  <span className="stat-value">{team.played}</span>
+                  <span className="stat-label">PJ</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-value">{team.wins}</span>
+                  <span className="stat-label">G</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-value">{team.draws}</span>
+                  <span className="stat-label">E</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-value">{team.losses}</span>
+                  <span className="stat-label">P</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-value">{team.goals_for}</span>
+                  <span className="stat-label">GF</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-value">{team.goals_against}</span>
+                  <span className="stat-label">GC</span>
+                </div>
+                <div className="stat-item diff">
+                  <span className={`stat-value ${team.goal_difference >= 0 ? "positive" : "negative"}`}>
+                    {team.goal_difference >= 0 ? `+${team.goal_difference}` : team.goal_difference}
+                  </span>
+                  <span className="stat-label">DG</span>
+                </div>
+                <div className="stat-item points">
+                  <span className="stat-value points-value">{team.points}</span>
+                  <span className="stat-label">Pts</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
