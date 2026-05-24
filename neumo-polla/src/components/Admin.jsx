@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import "./Admin.css";
 
-// Lista de países disponibles para seleccionar
+// Lista de países
 const COUNTRIES = [
   "Alemania", "Arabia Saudita", "Argelia", "Argentina", "Australia", "Austria",
   "Bélgica", "Bosnia y Herzegovina", "Brasil", "Cabo Verde", "Canadá", "Chile",
@@ -24,6 +24,10 @@ export default function Admin({ user, onStatsUpdate }) {
   const [predCount, setPredCount] = useState(0);
   const [message, setMessage] = useState({});
   
+  // Estado para los scores de cada partido (objeto con matchId: {home, away})
+  const [scores, setScores] = useState({});
+  
+  // Estados para resultados finales
   const [realResults, setRealResults] = useState({ first: "", second: "", third: "" });
   const [savingFinal, setSavingFinal] = useState(false);
   const [finalMessage, setFinalMessage] = useState("");
@@ -56,6 +60,80 @@ export default function Admin({ user, onStatsUpdate }) {
       .limit(1);
     
     setFinalLocked(anyPoints && anyPoints.length > 0);
+  }
+
+  function handleScoreChange(matchId, side, value) {
+    setScores(prev => ({
+      ...prev,
+      [matchId]: {
+        ...prev[matchId],
+        [side]: value
+      }
+    }));
+  }
+
+  async function saveResult(matchId) {
+    const homeScore = scores[matchId]?.home;
+    const awayScore = scores[matchId]?.away;
+    
+    if (!homeScore || homeScore === "" || !awayScore || awayScore === "") {
+      setMessage(prev => ({ 
+        ...prev, 
+        [matchId]: { text: "⚠️ Ingresa ambos resultados", type: "error" } 
+      }));
+      setTimeout(() => setMessage(prev => ({ ...prev, [matchId]: null })), 3000);
+      return;
+    }
+    
+    setSaving(prev => ({ ...prev, [matchId]: true }));
+    
+    const { error } = await supabase
+      .from("matches")
+      .update({ 
+        home_score: parseInt(homeScore), 
+        away_score: parseInt(awayScore), 
+        is_finished: true 
+      })
+      .eq("id", matchId);
+    
+    if (error) {
+      setMessage(prev => ({ 
+        ...prev, 
+        [matchId]: { text: "❌ Error al guardar", type: "error" } 
+      }));
+    } else {
+      setMessage(prev => ({ 
+        ...prev, 
+        [matchId]: { text: "✅ Resultado guardado. Puntos calculados!", type: "success" } 
+      }));
+      fetchData();
+      if (onStatsUpdate) onStatsUpdate();
+      setTimeout(() => setMessage(prev => ({ ...prev, [matchId]: null })), 3000);
+    }
+    
+    setSaving(prev => ({ ...prev, [matchId]: false }));
+  }
+
+  async function resetMatch(matchId) {
+    if (!confirm("¿Reabrir partido? Esto borrará el resultado y los puntos.")) return;
+    
+    setSaving(prev => ({ ...prev, [matchId]: true }));
+    
+    const { error } = await supabase
+      .from("matches")
+      .update({ home_score: null, away_score: null, is_finished: false })
+      .eq("id", matchId);
+    
+    if (!error) {
+      setMessage(prev => ({ 
+        ...prev, 
+        [matchId]: { text: "✅ Partido reabierto", type: "success" } 
+      }));
+      fetchData();
+      setTimeout(() => setMessage(prev => ({ ...prev, [matchId]: null })), 3000);
+    }
+    
+    setSaving(prev => ({ ...prev, [matchId]: false }));
   }
 
   async function saveFinalResults() {
@@ -136,67 +214,6 @@ export default function Admin({ user, onStatsUpdate }) {
     setTimeout(() => setFinalMessage(""), 3000);
   }
 
-  async function saveResult(matchId, homeScore, awayScore) {
-    if (!homeScore || homeScore === "" || !awayScore || awayScore === "") {
-      setMessage(prev => ({ 
-        ...prev, 
-        [matchId]: { text: "⚠️ Ingresa ambos resultados", type: "error" } 
-      }));
-      setTimeout(() => setMessage(prev => ({ ...prev, [matchId]: null })), 3000);
-      return;
-    }
-    
-    setSaving(prev => ({ ...prev, [matchId]: true }));
-    
-    const { error } = await supabase
-      .from("matches")
-      .update({ 
-        home_score: parseInt(homeScore), 
-        away_score: parseInt(awayScore), 
-        is_finished: true 
-      })
-      .eq("id", matchId);
-    
-    if (error) {
-      setMessage(prev => ({ 
-        ...prev, 
-        [matchId]: { text: "❌ Error al guardar", type: "error" } 
-      }));
-    } else {
-      setMessage(prev => ({ 
-        ...prev, 
-        [matchId]: { text: "✅ Resultado guardado. Puntos calculados!", type: "success" } 
-      }));
-      fetchData();
-      if (onStatsUpdate) onStatsUpdate();
-      setTimeout(() => setMessage(prev => ({ ...prev, [matchId]: null })), 3000);
-    }
-    
-    setSaving(prev => ({ ...prev, [matchId]: false }));
-  }
-
-  async function resetMatch(matchId) {
-    if (!confirm("¿Reabrir partido? Esto borrará el resultado y los puntos.")) return;
-    
-    setSaving(prev => ({ ...prev, [matchId]: true }));
-    
-    const { error } = await supabase
-      .from("matches")
-      .update({ home_score: null, away_score: null, is_finished: false })
-      .eq("id", matchId);
-    
-    if (!error) {
-      setMessage(prev => ({ 
-        ...prev, 
-        [matchId]: { text: "✅ Partido reabierto", type: "success" } 
-      }));
-      fetchData();
-      setTimeout(() => setMessage(prev => ({ ...prev, [matchId]: null })), 3000);
-    }
-    
-    setSaving(prev => ({ ...prev, [matchId]: false }));
-  }
-
   if (loading) return <div className="admin-loading">Cargando...</div>;
 
   const pendingMatches = matches.filter((m) => !m.is_finished);
@@ -229,9 +246,7 @@ export default function Admin({ user, onStatsUpdate }) {
         <div className="admin-final-header">
           <span className="admin-final-icon">🏆</span>
           <h3 className="admin-final-title">Resultados Finales del Mundial</h3>
-          <p className="admin-final-desc">
-            Carga los resultados reales: 1° = 20 pts | 2° = 10 pts | 3° = 5 pts
-          </p>
+          <p className="admin-final-desc">1° = 20 pts | 2° = 10 pts | 3° = 5 pts</p>
         </div>
 
         {finalLocked ? (
@@ -303,10 +318,9 @@ export default function Admin({ user, onStatsUpdate }) {
           <h3 className="admin-section-title">📝 Cargar resultados de partidos</h3>
           
           {pendingMatches.map((match) => {
-            const [homeScore, setHomeScore] = useState("");
-            const [awayScore, setAwayScore] = useState("");
             const isSaving = saving[match.id];
             const msg = message[match.id];
+            const currentScore = scores[match.id] || { home: "", away: "" };
             
             return (
               <div className="admin-match-card" key={match.id}>
@@ -319,16 +333,16 @@ export default function Admin({ user, onStatsUpdate }) {
                     <input
                       type="number" min="0" max="20"
                       className="admin-score-input"
-                      value={homeScore}
-                      onChange={(e) => setHomeScore(e.target.value)}
+                      value={currentScore.home}
+                      onChange={(e) => handleScoreChange(match.id, "home", e.target.value)}
                       disabled={isSaving}
                     />
                     <span className="admin-score-dash">-</span>
                     <input
                       type="number" min="0" max="20"
                       className="admin-score-input"
-                      value={awayScore}
-                      onChange={(e) => setAwayScore(e.target.value)}
+                      value={currentScore.away}
+                      onChange={(e) => handleScoreChange(match.id, "away", e.target.value)}
                       disabled={isSaving}
                     />
                   </div>
@@ -345,7 +359,7 @@ export default function Admin({ user, onStatsUpdate }) {
                     minute: "2-digit" 
                   })}
                 </div>
-                <button className="admin-save-btn" onClick={() => saveResult(match.id, homeScore, awayScore)} disabled={isSaving}>
+                <button className="admin-save-btn" onClick={() => saveResult(match.id)} disabled={isSaving}>
                   {isSaving ? "Guardando..." : "💾 Guardar resultado"}
                 </button>
                 {msg && <div className={`admin-match-message ${msg.type}`}>{msg.text}</div>}
