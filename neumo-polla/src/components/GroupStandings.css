@@ -1,210 +1,119 @@
-/* Group Standings Page */
-.standings-page {
-  width: 100%;
-  padding: 4px 0;
-}
-
-/* Selector de grupos (mobile) */
-.standings-group-selector {
+/* Groups Page */
+.group-selector-mobile {
   display: none;
   gap: 8px;
   overflow-x: auto;
-  padding: 8px 0;
   margin-bottom: 16px;
-  scrollbar-width: thin;
-  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
 }
 
-.standings-group-tab {
+.group-btn {
   padding: 8px 16px;
   background: white;
   border: 1px solid var(--border);
   border-radius: 30px;
   font-size: 12px;
-  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s;
-  font-family: 'DM Sans', sans-serif;
 }
 
-.standings-group-tab.active {
+.group-btn.active {
   background: var(--green);
   color: white;
   border-color: var(--green);
 }
 
-/* Desktop: grid de grupos */
-.standings-desktop {
+.groups-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
-/* Mobile */
-.standings-mobile {
+.group-mobile-view {
   display: none;
 }
 
-/* Tarjeta de cada grupo */
-.standings-card {
+.group-card {
   background: white;
   border-radius: 16px;
   padding: 12px;
-  box-shadow: var(--shadow);
   border: 1px solid var(--border);
   overflow-x: auto;
 }
 
-.standings-card-title {
+.group-title {
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 12px;
   color: var(--green-dark);
-  font-family: 'Syne', sans-serif;
   border-left: 4px solid var(--green);
   padding-left: 10px;
 }
 
-/* Contenedor de la tabla con scroll horizontal */
-.standings-table-container {
+.table-wrapper {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
-/* Tabla */
-.standings-table {
+.group-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
-  min-width: 500px;
+  font-size: 11px;
+  min-width: 550px;
 }
 
-.standings-table th,
-.standings-table td {
-  padding: 10px 6px;
+.group-table th,
+.group-table td {
+  padding: 8px 4px;
   text-align: center;
   border-bottom: 1px solid var(--border);
 }
 
-.standings-table th {
+.group-table th {
   background: var(--green-light);
   color: var(--green-dark);
   font-weight: 600;
-  font-size: 11px;
-  white-space: nowrap;
 }
 
-/* Columnas con ancho fijo */
-.col-rank {
-  width: 40px;
-}
-
-.col-team {
-  text-align: left;
-  min-width: 140px;
-}
-
-.col-num {
-  width: 38px;
-}
-
-/* Celda del equipo */
-.col-team {
+.team-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  text-align: left;
 }
 
 .team-flag {
-  font-size: 18px;
-  flex-shrink: 0;
+  font-size: 16px;
 }
 
 .team-name {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  white-space: nowrap;
 }
 
-/* Puntos */
-.points {
-  font-weight: 700;
-  color: var(--green-dark);
-  font-size: 13px;
-}
-
-.positive {
+.dg-positive {
   color: var(--green-dark);
   font-weight: 600;
 }
 
-.negative {
+.dg-negative {
   color: var(--red);
   font-weight: 600;
 }
 
-/* Mensajes vacíos */
-.standings-empty-row {
-  text-align: center;
-  padding: 30px;
-  color: var(--text-muted);
+.pts {
+  font-weight: 700;
+  color: var(--green-dark);
+  font-size: 12px;
 }
 
-.standings-loading {
-  text-align: center;
-  padding: 40px;
-  color: var(--text-muted);
-  font-size: 14px;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
-  .standings-desktop {
+  .groups-grid {
     display: none;
   }
-  
-  .standings-mobile {
+  .group-mobile-view {
     display: block;
   }
-  
-  .standings-group-selector {
+  .group-selector-mobile {
     display: flex;
-  }
-  
-  .standings-card {
-    padding: 10px;
-  }
-  
-  .standings-card-title {
-    font-size: 14px;
-  }
-  
-  .standings-table th,
-  .standings-table td {
-    padding: 8px 4px;
-    font-size: 10px;
-  }
-  
-  .col-team {
-    min-width: 120px;
-  }
-  
-  .team-flag {
-    font-size: 14px;
-  }
-  
-  .team-name {
-    font-size: 10px;
-  }
-  
-  .points {
-    font-size: 11px;
-  }
-}
-
-@media (min-width: 1200px) {
-  .standings-desktop {
-    grid-template-columns: repeat(3, 1fr);
   }
 }
