@@ -24,7 +24,6 @@ export default function Admin({ user, onStatsUpdate }) {
   const [predCount, setPredCount] = useState(0);
   const [message, setMessage] = useState({});
   
-  // Estados para resultados finales
   const [realResults, setRealResults] = useState({ first: "", second: "", third: "" });
   const [savingFinal, setSavingFinal] = useState(false);
   const [finalMessage, setFinalMessage] = useState("");
@@ -50,20 +49,6 @@ export default function Admin({ user, onStatsUpdate }) {
   }
 
   async function checkFinalResults() {
-    // Verificar si ya hay resultados finales guardados
-    const { data } = await supabase
-      .from("final_positions_predictions")
-      .select("first_place, second_place, third_place")
-      .limit(1);
-    
-    // Esto es solo para saber si ya se cargaron, no es perfecto pero funciona
-    const { data: settings } = await supabase
-      .from("final_positions_predictions")
-      .select("first_place, second_place, third_place")
-      .eq("user_id", user.id)
-      .single();
-    
-    // Si ya hay puntos asignados (algún usuario tiene puntos > 0), está bloqueado
     const { data: anyPoints } = await supabase
       .from("final_positions_predictions")
       .select("points")
@@ -88,14 +73,13 @@ export default function Admin({ user, onStatsUpdate }) {
       return;
     }
 
-    if (!confirm("¿Estás seguro? Esta acción calculará los puntos finales para TODOS los usuarios. No se podrá modificar después.")) {
+    if (!confirm("¿Estás seguro? Esta acción calculará los puntos finales para TODOS los usuarios.")) {
       return;
     }
 
     setSavingFinal(true);
     setFinalMessage("");
 
-    // 1. Obtener todas las predicciones de los usuarios
     const { data: predictions } = await supabase
       .from("final_positions_predictions")
       .select("*");
@@ -106,23 +90,12 @@ export default function Admin({ user, onStatsUpdate }) {
       return;
     }
 
-    // 2. Calcular puntos para cada usuario
     let updatedCount = 0;
     for (const pred of predictions) {
       let points = 0;
-      
-      // 1er lugar: 20 puntos
-      if (pred.first_place === realResults.first) {
-        points += 20;
-      }
-      // 2do lugar: 10 puntos
-      if (pred.second_place === realResults.second) {
-        points += 10;
-      }
-      // 3er lugar: 5 puntos
-      if (pred.third_place === realResults.third) {
-        points += 5;
-      }
+      if (pred.first_place === realResults.first) points += 20;
+      if (pred.second_place === realResults.second) points += 10;
+      if (pred.third_place === realResults.third) points += 5;
       
       const { error } = await supabase
         .from("final_positions_predictions")
@@ -132,7 +105,7 @@ export default function Admin({ user, onStatsUpdate }) {
       if (!error) updatedCount++;
     }
 
-    setFinalMessage(`✅ Resultados guardados! Se actualizaron ${updatedCount} usuarios. Los puntos ya están sumados al ranking.`);
+    setFinalMessage(`✅ Resultados guardados! Se actualizaron ${updatedCount} usuarios.`);
     setFinalLocked(true);
     setSavingFinal(false);
     
@@ -141,9 +114,7 @@ export default function Admin({ user, onStatsUpdate }) {
   }
 
   async function resetFinalResults() {
-    if (!confirm("⚠️ ¿Reabrir resultados finales? Esto borrará TODOS los puntos de TODOS los usuarios para esta predicción.")) {
-      return;
-    }
+    if (!confirm("⚠️ ¿Reabrir resultados finales? Esto borrará TODOS los puntos.")) return;
 
     setSavingFinal(true);
     
@@ -153,7 +124,7 @@ export default function Admin({ user, onStatsUpdate }) {
       .neq("points", 0);
     
     if (!error) {
-      setFinalMessage("✅ Resultados finales reabiertos. Los puntos han sido reiniciados.");
+      setFinalMessage("✅ Resultados finales reabiertos.");
       setFinalLocked(false);
       setRealResults({ first: "", second: "", third: "" });
       if (onStatsUpdate) onStatsUpdate();
@@ -166,8 +137,7 @@ export default function Admin({ user, onStatsUpdate }) {
   }
 
   async function saveResult(matchId, homeScore, awayScore) {
-    if (homeScore === undefined || awayScore === undefined || 
-        homeScore === "" || awayScore === "") {
+    if (!homeScore || homeScore === "" || !awayScore || awayScore === "") {
       setMessage(prev => ({ 
         ...prev, 
         [matchId]: { text: "⚠️ Ingresa ambos resultados", type: "error" } 
@@ -178,14 +148,11 @@ export default function Admin({ user, onStatsUpdate }) {
     
     setSaving(prev => ({ ...prev, [matchId]: true }));
     
-    const hs = parseInt(homeScore);
-    const as = parseInt(awayScore);
-    
     const { error } = await supabase
       .from("matches")
       .update({ 
-        home_score: hs, 
-        away_score: as, 
+        home_score: parseInt(homeScore), 
+        away_score: parseInt(awayScore), 
         is_finished: true 
       })
       .eq("id", matchId);
@@ -230,108 +197,101 @@ export default function Admin({ user, onStatsUpdate }) {
     setSaving(prev => ({ ...prev, [matchId]: false }));
   }
 
-  if (loading) return <div className="loading-inline">Cargando...</div>;
+  if (loading) return <div className="admin-loading">Cargando...</div>;
 
   const pendingMatches = matches.filter((m) => !m.is_finished);
   const finishedMatches = matches.filter((m) => m.is_finished);
 
   return (
-    <div>
+    <div className="admin-container">
       <div className="admin-banner">
         <span>⚙️ Panel de administrador</span>
-        <span style={{ fontSize: "12px", opacity: 0.7 }}>Solo visible para admins</span>
+        <span className="admin-banner-small">Solo visible para admins</span>
       </div>
 
-      <div className="stats-grid" style={{ marginTop: "1rem" }}>
-        <div className="stat-card">
-          <div className="stat-num">{participantCount}</div>
-          <div className="stat-lbl">participantes</div>
+      <div className="admin-stats">
+        <div className="admin-stat-card">
+          <div className="admin-stat-num">{participantCount}</div>
+          <div className="admin-stat-lbl">participantes</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-num">{finishedMatches.length}</div>
-          <div className="stat-lbl">jugados</div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-num">{finishedMatches.length}</div>
+          <div className="admin-stat-lbl">jugados</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-num">{predCount}</div>
-          <div className="stat-lbl">predicciones</div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-num">{predCount}</div>
+          <div className="admin-stat-lbl">predicciones</div>
         </div>
       </div>
 
-      {/* ============================================ */}
-      {/* SECCIÓN: RESULTADOS FINALES DEL MUNDIAL */}
-      {/* ============================================ */}
-      <div className="final-results-section">
-        <div className="final-results-header">
-          <span className="final-results-icon">🏆</span>
-          <h3 className="final-results-title">Resultados Finales del Mundial</h3>
-          <p className="final-results-desc">
-            Carga aquí los resultados reales del 1°, 2° y 3er lugar.<br/>
-            <strong>Puntuación:</strong> 1° = 20 pts | 2° = 10 pts | 3° = 5 pts
+      {/* SECCIÓN RESULTADOS FINALES */}
+      <div className="admin-final-section">
+        <div className="admin-final-header">
+          <span className="admin-final-icon">🏆</span>
+          <h3 className="admin-final-title">Resultados Finales del Mundial</h3>
+          <p className="admin-final-desc">
+            Carga los resultados reales: 1° = 20 pts | 2° = 10 pts | 3° = 5 pts
           </p>
         </div>
 
         {finalLocked ? (
-          <div className="final-locked-info">
-            <p>✅ Resultados ya cargados. Los puntos han sido distribuidos.</p>
+          <div className="admin-final-locked">
+            <p>✅ Resultados ya cargados</p>
             <button className="admin-reset-btn" onClick={resetFinalResults} disabled={savingFinal}>
-              {savingFinal ? "Procesando..." : "🔄 Reabrir resultados finales"}
+              {savingFinal ? "Procesando..." : "🔄 Reabrir"}
             </button>
           </div>
         ) : (
-          <div className="final-results-form">
-            <div className="final-result-select">
-              <label className="final-label gold">🥇 1er Lugar (20 puntos)</label>
+          <div className="admin-final-form">
+            <div className="admin-final-select-group">
+              <label className="admin-final-label gold">🥇 1er Lugar (20 pts)</label>
               <select
                 value={realResults.first}
                 onChange={(e) => setRealResults(prev => ({ ...prev, first: e.target.value }))}
-                className="final-select"
+                className="admin-final-select"
               >
-                <option value="">Selecciona el campeón</option>
+                <option value="">Selecciona</option>
                 {COUNTRIES.map(country => (
                   <option key={country} value={country}>{country}</option>
                 ))}
               </select>
             </div>
 
-            <div className="final-result-select">
-              <label className="final-label silver">🥈 2do Lugar (10 puntos)</label>
+            <div className="admin-final-select-group">
+              <label className="admin-final-label silver">🥈 2do Lugar (10 pts)</label>
               <select
                 value={realResults.second}
                 onChange={(e) => setRealResults(prev => ({ ...prev, second: e.target.value }))}
-                className="final-select"
+                className="admin-final-select"
               >
-                <option value="">Selecciona el subcampeón</option>
+                <option value="">Selecciona</option>
                 {COUNTRIES.filter(c => c !== realResults.first).map(country => (
                   <option key={country} value={country}>{country}</option>
                 ))}
               </select>
             </div>
 
-            <div className="final-result-select">
-              <label className="final-label bronze">🥉 3er Lugar (5 puntos)</label>
+            <div className="admin-final-select-group">
+              <label className="admin-final-label bronze">🥉 3er Lugar (5 pts)</label>
               <select
                 value={realResults.third}
                 onChange={(e) => setRealResults(prev => ({ ...prev, third: e.target.value }))}
-                className="final-select"
+                className="admin-final-select"
               >
-                <option value="">Selecciona el tercer lugar</option>
+                <option value="">Selecciona</option>
                 {COUNTRIES.filter(c => c !== realResults.first && c !== realResults.second).map(country => (
                   <option key={country} value={country}>{country}</option>
                 ))}
               </select>
             </div>
 
-            <button 
-              className="final-save-results-btn" 
-              onClick={saveFinalResults} 
-              disabled={savingFinal}
-            >
-              {savingFinal ? "Calculando puntos..." : "🏆 Cargar resultados finales y calcular puntos"}
+            <button className="admin-final-btn" onClick={saveFinalResults} disabled={savingFinal}>
+              {savingFinal ? "Calculando..." : "🏆 Cargar resultados finales"}
             </button>
           </div>
         )}
         {finalMessage && (
-          <div className={`final-message ${finalMessage.includes("✅") ? "success" : "error"}`}>
+          <div className={`admin-final-message ${finalMessage.includes("✅") ? "success" : "error"}`}>
             {finalMessage}
           </div>
         )}
@@ -340,7 +300,7 @@ export default function Admin({ user, onStatsUpdate }) {
       {/* PARTIDOS PENDIENTES */}
       {pendingMatches.length > 0 && (
         <>
-          <p className="group-title" style={{ marginTop: "1rem" }}>📝 Cargar resultados</p>
+          <h3 className="admin-section-title">📝 Cargar resultados de partidos</h3>
           
           {pendingMatches.map((match) => {
             const [homeScore, setHomeScore] = useState("");
@@ -357,15 +317,15 @@ export default function Admin({ user, onStatsUpdate }) {
                   </div>
                   <div className="admin-score-area">
                     <input
-                      type="number" min="0" max="20" placeholder="0"
+                      type="number" min="0" max="20"
                       className="admin-score-input"
                       value={homeScore}
                       onChange={(e) => setHomeScore(e.target.value)}
                       disabled={isSaving}
                     />
-                    <span className="admin-dash">-</span>
+                    <span className="admin-score-dash">-</span>
                     <input
-                      type="number" min="0" max="20" placeholder="0"
+                      type="number" min="0" max="20"
                       className="admin-score-input"
                       value={awayScore}
                       onChange={(e) => setAwayScore(e.target.value)}
@@ -377,24 +337,18 @@ export default function Admin({ user, onStatsUpdate }) {
                     <span className="admin-flag">{match.away_flag}</span>
                   </div>
                 </div>
-                <div className="admin-match-info">
-                  📅 {match.match_date ? new Date(match.match_date).toLocaleString("es-CO", { 
+                <div className="admin-match-date">
+                  📅 {new Date(match.match_date).toLocaleString("es-CO", { 
                     day: "numeric", 
                     month: "short", 
                     hour: "2-digit", 
                     minute: "2-digit" 
-                  }) : "Fecha por definir"}
+                  })}
                 </div>
-                <button 
-                  className="admin-save-btn" 
-                  onClick={() => saveResult(match.id, homeScore, awayScore)}
-                  disabled={isSaving}
-                >
+                <button className="admin-save-btn" onClick={() => saveResult(match.id, homeScore, awayScore)} disabled={isSaving}>
                   {isSaving ? "Guardando..." : "💾 Guardar resultado"}
                 </button>
-                {msg && (
-                  <div className={`admin-match-message ${msg.type}`}>{msg.text}</div>
-                )}
+                {msg && <div className={`admin-match-message ${msg.type}`}>{msg.text}</div>}
               </div>
             );
           })}
@@ -404,7 +358,7 @@ export default function Admin({ user, onStatsUpdate }) {
       {/* PARTIDOS FINALIZADOS */}
       {finishedMatches.length > 0 && (
         <>
-          <p className="group-title" style={{ marginTop: "1.5rem" }}>✅ Partidos finalizados</p>
+          <h3 className="admin-section-title">✅ Partidos finalizados</h3>
           {finishedMatches.map((match) => (
             <div className="admin-match-card finished" key={match.id}>
               <div className="admin-match-row">
@@ -413,20 +367,16 @@ export default function Admin({ user, onStatsUpdate }) {
                   <span className="admin-team-name">{match.home_team}</span>
                 </div>
                 <div className="admin-result">
-                  <span className="admin-home-score">{match.home_score}</span>
-                  <span className="admin-dash">-</span>
-                  <span className="admin-away-score">{match.away_score}</span>
+                  <span className="admin-result-home">{match.home_score}</span>
+                  <span className="admin-score-dash">-</span>
+                  <span className="admin-result-away">{match.away_score}</span>
                 </div>
                 <div className="admin-team right">
                   <span className="admin-team-name">{match.away_team}</span>
                   <span className="admin-flag">{match.away_flag}</span>
                 </div>
               </div>
-              <button 
-                className="admin-reset-btn" 
-                onClick={() => resetMatch(match.id)}
-                disabled={saving[match.id]}
-              >
+              <button className="admin-reset-btn" onClick={() => resetMatch(match.id)} disabled={saving[match.id]}>
                 {saving[match.id] ? "Procesando..." : "🔄 Reabrir partido"}
               </button>
             </div>

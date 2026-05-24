@@ -1,4 +1,9 @@
-/* Admin Panel Styles */
+/* Admin Container */
+.admin-container {
+  width: 100%;
+}
+
+/* Banner */
 .admin-banner {
   background: var(--green-dark);
   color: white;
@@ -7,59 +12,60 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 16px;
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
   margin-bottom: 20px;
 }
 
-.stat-card {
+.admin-banner-small {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Stats */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.admin-stat-card {
   background: white;
   border-radius: 16px;
   padding: 12px;
   text-align: center;
   border: 1px solid var(--border);
-  box-shadow: var(--shadow);
 }
 
-.stat-num {
-  font-family: 'Syne', sans-serif;
+.admin-stat-num {
   font-size: 28px;
   font-weight: 700;
+  font-family: 'Syne', sans-serif;
   color: var(--green-dark);
 }
 
-.stat-lbl {
+.admin-stat-lbl {
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 4px;
 }
 
-/* Group title */
-.group-title {
+/* Section title */
+.admin-section-title {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
   margin: 20px 0 12px;
+  letter-spacing: 0.5px;
 }
 
-/* Match card */
+/* Match Card */
 .admin-match-card {
   background: white;
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 12px;
   border: 1px solid var(--border);
-  box-shadow: var(--shadow);
 }
 
 .admin-match-card.finished {
@@ -93,7 +99,6 @@
 .admin-team-name {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text);
 }
 
 .admin-score-area {
@@ -122,7 +127,7 @@
   border-color: var(--green);
 }
 
-.admin-dash {
+.admin-score-dash {
   color: var(--text-faint);
   font-weight: 600;
 }
@@ -136,15 +141,15 @@
   font-family: 'Syne', sans-serif;
 }
 
-.admin-home-score {
+.admin-result-home {
   color: var(--green-dark);
 }
 
-.admin-away-score {
+.admin-result-away {
   color: var(--red);
 }
 
-.admin-match-info {
+.admin-match-date {
   margin-top: 12px;
   padding-top: 8px;
   border-top: 1px solid var(--border);
@@ -153,6 +158,7 @@
   text-align: center;
 }
 
+/* Buttons */
 .admin-save-btn {
   margin-top: 12px;
   width: 100%;
@@ -187,18 +193,13 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s;
 }
 
 .admin-reset-btn:hover {
   background: #fcc5c5;
 }
 
-.admin-reset-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
+/* Messages */
 .admin-match-message {
   margin-top: 10px;
   padding: 8px;
@@ -217,55 +218,51 @@
   color: var(--red);
 }
 
-/* ============================================ */
-/* RESULTADOS FINALES - SECCIÓN ADMIN */
-/* ============================================ */
-
-.final-results-section {
+/* Final Results Section */
+.admin-final-section {
   background: linear-gradient(135deg, white 0%, #fff8e8 100%);
   border-radius: 20px;
   padding: 20px;
   margin-bottom: 24px;
-  border: 2px solid var(--gold);
+  border: 2px solid #c9a84c;
 }
 
-.final-results-header {
+.admin-final-header {
   text-align: center;
   margin-bottom: 20px;
 }
 
-.final-results-icon {
+.admin-final-icon {
   font-size: 48px;
   display: block;
   margin-bottom: 8px;
 }
 
-.final-results-title {
+.admin-final-title {
   font-size: 20px;
   font-weight: 700;
   color: var(--green-dark);
-  font-family: 'Syne', sans-serif;
   margin-bottom: 8px;
 }
 
-.final-results-desc {
+.admin-final-desc {
   font-size: 13px;
   color: var(--text-muted);
 }
 
-.final-results-form {
+.admin-final-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.final-result-select {
+.admin-final-select-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.final-label {
+.admin-final-label {
   font-size: 14px;
   font-weight: 600;
   padding: 6px 12px;
@@ -274,40 +271,33 @@
   width: fit-content;
 }
 
-.final-label.gold {
+.admin-final-label.gold {
   background: #fef3c7;
   color: #b45309;
 }
 
-.final-label.silver {
+.admin-final-label.silver {
   background: #f3f4f6;
   color: #4b5563;
 }
 
-.final-label.bronze {
+.admin-final-label.bronze {
   background: #fef3c7;
   color: #b45309;
 }
 
-.final-select {
+.admin-final-select {
   padding: 12px 16px;
   border: 1px solid var(--border);
   border-radius: 12px;
   font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
   background: white;
   cursor: pointer;
 }
 
-.final-select:focus {
-  outline: none;
-  border-color: var(--gold);
-  box-shadow: 0 0 0 2px #fef3c7;
-}
-
-.final-save-results-btn {
+.admin-final-btn {
   padding: 14px;
-  background: var(--gold);
+  background: #c9a84c;
   border: none;
   border-radius: 40px;
   color: white;
@@ -315,32 +305,25 @@
   font-weight: 600;
   cursor: pointer;
   margin-top: 8px;
-  transition: background 0.15s;
 }
 
-.final-save-results-btn:hover {
+.admin-final-btn:hover {
   background: #b45309;
 }
 
-.final-save-results-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.final-locked-info {
+.admin-final-locked {
   text-align: center;
   padding: 16px;
   background: var(--green-light);
   border-radius: 16px;
 }
 
-.final-locked-info p {
+.admin-final-locked p {
   color: var(--green-dark);
   margin-bottom: 12px;
-  font-weight: 500;
 }
 
-.final-message {
+.admin-final-message {
   margin-top: 12px;
   padding: 10px;
   border-radius: 12px;
@@ -348,14 +331,20 @@
   font-size: 13px;
 }
 
-.final-message.success {
+.admin-final-message.success {
   background: var(--green-light);
   color: var(--green-dark);
 }
 
-.final-message.error {
+.admin-final-message.error {
   background: #fde8e8;
   color: var(--red);
+}
+
+.admin-loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
 }
 
 /* Responsive */
@@ -372,16 +361,9 @@
     font-size: 16px;
   }
   .admin-score-area {
-    padding: 4px 10px;
+    padding: 4px 8px;
   }
-  .admin-match-row {
-    gap: 8px;
-  }
-  .final-select {
-    font-size: 12px;
-    padding: 10px 12px;
-  }
-  .final-label {
+  .admin-final-select {
     font-size: 12px;
   }
 }
