@@ -2,6 +2,20 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import "./Admin.css";
 
+// Lista de países disponibles para seleccionar
+const COUNTRIES = [
+  "Alemania", "Arabia Saudita", "Argelia", "Argentina", "Australia", "Austria",
+  "Bélgica", "Bosnia y Herzegovina", "Brasil", "Cabo Verde", "Canadá", "Chile",
+  "Colombia", "Corea del Norte", "Corea del Sur", "Costa de Marfil", "Costa Rica",
+  "Croacia", "Curazao", "Dinamarca", "Ecuador", "Egipto", "Emiratos Árabes Unidos",
+  "Escocia", "España", "Estados Unidos", "Francia", "Ghana", "Haití", "Inglaterra",
+  "Irak", "Irán", "Italia", "Japón", "Jordania", "Marruecos", "México", "Nigeria",
+  "Noruega", "Nueva Zelanda", "Países Bajos", "Panamá", "Paraguay", "Perú",
+  "Polonia", "Portugal", "Qatar", "República Checa", "República Democrática del Congo",
+  "Senegal", "Serbia", "Sudáfrica", "Suecia", "Suiza", "Túnez", "Turquía",
+  "Ucrania", "Uruguay", "Uzbekistán"
+].sort();
+
 export default function Admin({ user, onStatsUpdate }) {
   const [matches, setMatches] = useState([]);
   const [saving, setSaving] = useState({});
@@ -9,9 +23,16 @@ export default function Admin({ user, onStatsUpdate }) {
   const [participantCount, setParticipantCount] = useState(0);
   const [predCount, setPredCount] = useState(0);
   const [message, setMessage] = useState({});
+  
+  // Estados para resultados finales
+  const [realResults, setRealResults] = useState({ first: "", second: "", third: "" });
+  const [savingFinal, setSavingFinal] = useState(false);
+  const [finalMessage, setFinalMessage] = useState("");
+  const [finalLocked, setFinalLocked] = useState(false);
 
   useEffect(() => {
     fetchData();
+    checkFinalResults();
   }, []);
 
   async function fetchData() {
@@ -26,6 +47,122 @@ export default function Admin({ user, onStatsUpdate }) {
     setParticipantCount(p?.length || 0);
     setPredCount(pr?.length || 0);
     setLoading(false);
+  }
+
+  async function checkFinalResults() {
+    // Verificar si ya hay resultados finales guardados
+    const { data } = await supabase
+      .from("final_positions_predictions")
+      .select("first_place, second_place, third_place")
+      .limit(1);
+    
+    // Esto es solo para saber si ya se cargaron, no es perfecto pero funciona
+    const { data: settings } = await supabase
+      .from("final_positions_predictions")
+      .select("first_place, second_place, third_place")
+      .eq("user_id", user.id)
+      .single();
+    
+    // Si ya hay puntos asignados (algún usuario tiene puntos > 0), está bloqueado
+    const { data: anyPoints } = await supabase
+      .from("final_positions_predictions")
+      .select("points")
+      .gt("points", 0)
+      .limit(1);
+    
+    setFinalLocked(anyPoints && anyPoints.length > 0);
+  }
+
+  async function saveFinalResults() {
+    if (!realResults.first || !realResults.second || !realResults.third) {
+      setFinalMessage("⚠️ Selecciona los 3 primeros lugares");
+      setTimeout(() => setFinalMessage(""), 3000);
+      return;
+    }
+
+    if (realResults.first === realResults.second || 
+        realResults.first === realResults.third || 
+        realResults.second === realResults.third) {
+      setFinalMessage("⚠️ Los tres equipos deben ser diferentes");
+      setTimeout(() => setFinalMessage(""), 3000);
+      return;
+    }
+
+    if (!confirm("¿Estás seguro? Esta acción calculará los puntos finales para TODOS los usuarios. No se podrá modificar después.")) {
+      return;
+    }
+
+    setSavingFinal(true);
+    setFinalMessage("");
+
+    // 1. Obtener todas las predicciones de los usuarios
+    const { data: predictions } = await supabase
+      .from("final_positions_predictions")
+      .select("*");
+
+    if (!predictions || predictions.length === 0) {
+      setFinalMessage("⚠️ No hay predicciones de usuarios para calcular");
+      setSavingFinal(false);
+      return;
+    }
+
+    // 2. Calcular puntos para cada usuario
+    let updatedCount = 0;
+    for (const pred of predictions) {
+      let points = 0;
+      
+      // 1er lugar: 20 puntos
+      if (pred.first_place === realResults.first) {
+        points += 20;
+      }
+      // 2do lugar: 10 puntos
+      if (pred.second_place === realResults.second) {
+        points += 10;
+      }
+      // 3er lugar: 5 puntos
+      if (pred.third_place === realResults.third) {
+        points += 5;
+      }
+      
+      const { error } = await supabase
+        .from("final_positions_predictions")
+        .update({ points: points })
+        .eq("id", pred.id);
+      
+      if (!error) updatedCount++;
+    }
+
+    setFinalMessage(`✅ Resultados guardados! Se actualizaron ${updatedCount} usuarios. Los puntos ya están sumados al ranking.`);
+    setFinalLocked(true);
+    setSavingFinal(false);
+    
+    if (onStatsUpdate) onStatsUpdate();
+    setTimeout(() => setFinalMessage(""), 5000);
+  }
+
+  async function resetFinalResults() {
+    if (!confirm("⚠️ ¿Reabrir resultados finales? Esto borrará TODOS los puntos de TODOS los usuarios para esta predicción.")) {
+      return;
+    }
+
+    setSavingFinal(true);
+    
+    const { error } = await supabase
+      .from("final_positions_predictions")
+      .update({ points: 0 })
+      .neq("points", 0);
+    
+    if (!error) {
+      setFinalMessage("✅ Resultados finales reabiertos. Los puntos han sido reiniciados.");
+      setFinalLocked(false);
+      setRealResults({ first: "", second: "", third: "" });
+      if (onStatsUpdate) onStatsUpdate();
+    } else {
+      setFinalMessage("❌ Error al reabrir: " + error.message);
+    }
+    
+    setSavingFinal(false);
+    setTimeout(() => setFinalMessage(""), 3000);
   }
 
   async function saveResult(matchId, homeScore, awayScore) {
@@ -118,6 +255,86 @@ export default function Admin({ user, onStatsUpdate }) {
           <div className="stat-num">{predCount}</div>
           <div className="stat-lbl">predicciones</div>
         </div>
+      </div>
+
+      {/* ============================================ */}
+      {/* SECCIÓN: RESULTADOS FINALES DEL MUNDIAL */}
+      {/* ============================================ */}
+      <div className="final-results-section">
+        <div className="final-results-header">
+          <span className="final-results-icon">🏆</span>
+          <h3 className="final-results-title">Resultados Finales del Mundial</h3>
+          <p className="final-results-desc">
+            Carga aquí los resultados reales del 1°, 2° y 3er lugar.<br/>
+            <strong>Puntuación:</strong> 1° = 20 pts | 2° = 10 pts | 3° = 5 pts
+          </p>
+        </div>
+
+        {finalLocked ? (
+          <div className="final-locked-info">
+            <p>✅ Resultados ya cargados. Los puntos han sido distribuidos.</p>
+            <button className="admin-reset-btn" onClick={resetFinalResults} disabled={savingFinal}>
+              {savingFinal ? "Procesando..." : "🔄 Reabrir resultados finales"}
+            </button>
+          </div>
+        ) : (
+          <div className="final-results-form">
+            <div className="final-result-select">
+              <label className="final-label gold">🥇 1er Lugar (20 puntos)</label>
+              <select
+                value={realResults.first}
+                onChange={(e) => setRealResults(prev => ({ ...prev, first: e.target.value }))}
+                className="final-select"
+              >
+                <option value="">Selecciona el campeón</option>
+                {COUNTRIES.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="final-result-select">
+              <label className="final-label silver">🥈 2do Lugar (10 puntos)</label>
+              <select
+                value={realResults.second}
+                onChange={(e) => setRealResults(prev => ({ ...prev, second: e.target.value }))}
+                className="final-select"
+              >
+                <option value="">Selecciona el subcampeón</option>
+                {COUNTRIES.filter(c => c !== realResults.first).map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="final-result-select">
+              <label className="final-label bronze">🥉 3er Lugar (5 puntos)</label>
+              <select
+                value={realResults.third}
+                onChange={(e) => setRealResults(prev => ({ ...prev, third: e.target.value }))}
+                className="final-select"
+              >
+                <option value="">Selecciona el tercer lugar</option>
+                {COUNTRIES.filter(c => c !== realResults.first && c !== realResults.second).map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+            </div>
+
+            <button 
+              className="final-save-results-btn" 
+              onClick={saveFinalResults} 
+              disabled={savingFinal}
+            >
+              {savingFinal ? "Calculando puntos..." : "🏆 Cargar resultados finales y calcular puntos"}
+            </button>
+          </div>
+        )}
+        {finalMessage && (
+          <div className={`final-message ${finalMessage.includes("✅") ? "success" : "error"}`}>
+            {finalMessage}
+          </div>
+        )}
       </div>
 
       {/* PARTIDOS PENDIENTES */}

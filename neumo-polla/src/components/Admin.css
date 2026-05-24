@@ -207,3 +207,144 @@
     gap: 8px;
   }
 }
+
+/* ============================================ */
+/* RESULTADOS FINALES - SECCIÓN ADMIN */
+/* ============================================ */
+
+.final-results-section {
+  background: linear-gradient(135deg, white 0%, #fff8e8 100%);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 2px solid var(--gold);
+}
+
+.final-results-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.final-results-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.final-results-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--green-dark);
+  font-family: 'Syne', sans-serif;
+  margin-bottom: 8px;
+}
+
+.final-results-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.final-results-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.final-result-select {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.final-label {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 30px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.final-label.gold {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.final-label.silver {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.final-label.bronze {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.final-select {
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  background: white;
+  cursor: pointer;
+}
+
+.final-select:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px #fef3c7;
+}
+
+.final-save-results-btn {
+  padding: 14px;
+  background: var(--gold);
+  border: none;
+  border-radius: 40px;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.15s;
+}
+
+.final-save-results-btn:hover {
+  background: #b45309;
+}
+
+.final-save-results-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.final-locked-info {
+  text-align: center;
+  padding: 16px;
+  background: var(--green-light);
+  border-radius: 16px;
+}
+
+.final-locked-info p {
+  color: var(--green-dark);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.final-message {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.final-message.success {
+  background: var(--green-light);
+  color: var(--green-dark);
+}
+
+.final-message.error {
+  background: #fde8e8;
+  color: var(--red);
+}

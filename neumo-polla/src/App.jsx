@@ -4,7 +4,8 @@ import Auth from "./components/Auth";
 import Predictions from "./components/Predictions";
 import Ranking from "./components/Ranking";
 import Admin from "./components/Admin";
-import ProfileSetup from "./components/ProfileSetup";  // 👈 IMPORTAR EL NUEVO COMPONENTE
+import ProfileSetup from "./components/ProfileSetup";
+import FinalPositions from "./components/FinalPositions";  // 👈 NUEVO IMPORT
 import "./App.css";
 
 export default function App() {
@@ -12,7 +13,7 @@ export default function App() {
   const [profile, setProfile] = useState(null);
   const [activeTab, setActiveTab] = useState("predictions");
   const [loading, setLoading] = useState(true);
-  const [profileUpdated, setProfileUpdated] = useState(false); // 👈 PARA FORZAR ACTUALIZACIÓN
+  const [profileUpdated, setProfileUpdated] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -51,7 +52,6 @@ export default function App() {
     setProfile(null);
   }
 
-  // Función para refrescar el perfil después de actualizarlo
   const handleProfileUpdated = () => {
     setProfileUpdated(prev => !prev);
   };
@@ -78,13 +78,15 @@ export default function App() {
         <button className="logout-btn" onClick={handleLogout}>Salir</button>
       </header>
 
-      {/* 👈 FORMULARIO DE PERFIL - SE MUESTRA SOLO SI ES NECESARIO */}
       <main className="main">
         <ProfileSetup user={session.user} onProfileUpdated={handleProfileUpdated} />
 
         <nav className="nav">
           <button className={`nav-tab ${activeTab === "predictions" ? "active" : ""}`} onClick={() => setActiveTab("predictions")}>
             <span className="nav-icon">✏️</span> Mis predicciones
+          </button>
+          <button className={`nav-tab ${activeTab === "final" ? "active" : ""}`} onClick={() => setActiveTab("final")}>
+            <span className="nav-icon">🏆</span> Final
           </button>
           <button className={`nav-tab ${activeTab === "ranking" ? "active" : ""}`} onClick={() => setActiveTab("ranking")}>
             <span className="nav-icon">🏆</span> Ranking
@@ -97,8 +99,9 @@ export default function App() {
         </nav>
 
         {activeTab === "predictions" && <Predictions userId={session.user.id} />}
+        {activeTab === "final" && <FinalPositions userId={session.user.id} />}
         {activeTab === "ranking" && <Ranking userId={session.user.id} />}
-        {activeTab === "admin" && profile?.is_admin && <Admin />}
+        {activeTab === "admin" && profile?.is_admin && <Admin user={session.user} onStatsUpdate={handleProfileUpdated} />}
       </main>
     </div>
   );

@@ -102,12 +102,18 @@ export default function Predictions({ userId }) {
     setSaving(prev => ({ ...prev, [matchId]: false }));
   }
 
+  // Bloquear el día anterior a las 23:59 (no 1 hora antes)
   function isMatchLocked(matchDate) {
-    const now = new Date();
-    const matchTime = new Date(matchDate);
-    const oneHourBefore = new Date(matchTime.getTime() - 60 * 60 * 1000);
-    return now >= oneHourBefore;
-  }
+  const now = new Date();
+  const matchTime = new Date(matchDate);
+  
+  // Fecha de corte: un día antes a las 23:59:59
+  const cutoffDate = new Date(matchTime);
+  cutoffDate.setDate(cutoffDate.getDate() - 1);
+  cutoffDate.setHours(23, 59, 59, 999);
+  
+  return now >= cutoffDate;
+}
 
   function getResultLabel(pred, match) {
     if (!match.is_finished) return null;
