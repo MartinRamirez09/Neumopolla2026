@@ -141,7 +141,6 @@ export default function Admin({ user, onStatsUpdate }) {
           <div className="admin-stat-lbl">predicciones</div>
         </div>
       </div>
-
       {/* PARTIDOS PENDIENTES */}
       {pendingMatches.length > 0 && (
         <>
@@ -181,14 +180,33 @@ export default function Admin({ user, onStatsUpdate }) {
                     <span className="admin-flag">{match.away_flag}</span>
                   </div>
                 </div>
+                
+                {/* Información adicional: Fase, Grupo y Estadio */}
+                <div className="admin-match-info-additional">
+                  <div className="admin-match-phase">
+                    <span className="admin-phase-badge">
+                      {match.group_name || "Primera fase"}
+                    </span>
+                    {match.round && (
+                      <span className="admin-round-badge">
+                        Jornada {match.round}
+                      </span>
+                    )}
+                  </div>
+                  <div className="admin-match-stadium">
+                    <span>📍 {match.stadium || "Estadio por definir"}</span>
+                  </div>
+                </div>
+                
                 <div className="admin-match-date">
                   📅 {new Date(match.match_date).toLocaleString("es-CO", { 
                     day: "numeric", 
-                    month: "short", 
+                    month: "long", 
                     hour: "2-digit", 
                     minute: "2-digit" 
                   })}
                 </div>
+                
                 <button className="admin-save-btn" onClick={() => saveResult(match.id)} disabled={isSaving}>
                   {isSaving ? "Guardando..." : "💾 Guardar resultado"}
                 </button>

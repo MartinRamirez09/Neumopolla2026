@@ -367,3 +367,69 @@
     font-size: 12px;
   }
 }
+
+/* Información adicional del partido */
+.admin-match-info-additional {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-match-phase {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-phase-badge {
+  background: var(--green-light);
+  color: var(--green-dark);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.admin-round-badge {
+  background: #f0f0f0;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.admin-match-stadium {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-match-date {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .admin-match-info-additional {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .admin-match-stadium {
+    font-size: 10px;
+  }
+  .admin-phase-badge, .admin-round-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+}
