@@ -50,92 +50,82 @@ export default function GroupStandings() {
     setLoading(false);
   }
 
-  if (loading) return <div className="loading-inline">⚽ Cargando posiciones...</div>;
+  if (loading) return <div className="loading-inline">📊 Cargando posiciones...</div>;
 
   return (
-    <div className="groups-container">
-      {/* Selector de grupos (solo móvil) */}
-      <div className="groups-mobile-nav">
+    <div className="groups-wrapper">
+      {/* Selector móvil */}
+      <div className="groups-mobile-tabs">
         {GROUPS.map(group => (
-          <button key={group} className={`group-nav-btn ${selectedGroup === group ? "active" : ""}`} onClick={() => setSelectedGroup(group)}>
+          <button key={group} className={`group-tab ${selectedGroup === group ? "active" : ""}`} onClick={() => setSelectedGroup(group)}>
             {group}
           </button>
         ))}
       </div>
 
-      {/* Grid de grupos (desktop) */}
-      <div className="groups-grid">
+      {/* Desktop: todos los grupos */}
+      <div className="groups-desktop">
         {GROUPS.map(group => (
-          <GroupCard key={group} groupName={group} teams={standings[group] || []} />
+          <GroupStandingsTable key={group} groupName={group} teams={standings[group] || []} />
         ))}
       </div>
 
-      {/* Vista móvil: solo grupo seleccionado */}
-      <div className="groups-mobile-view">
-        <GroupCard groupName={selectedGroup} teams={standings[selectedGroup] || []} />
+      {/* Mobile: solo grupo seleccionado */}
+      <div className="groups-mobile">
+        <GroupStandingsTable groupName={selectedGroup} teams={standings[selectedGroup] || []} />
       </div>
     </div>
   );
 }
 
-function GroupCard({ groupName, teams }) {
+function GroupStandingsTable({ groupName, teams }) {
   return (
-    <div className="group-card">
-      <div className="group-card-header">
-        <span className="group-icon">📊</span>
-        <h3 className="group-name">{groupName}</h3>
+    <div className="group-standings-card">
+      <div className="group-standings-header">
+        <span className="group-standings-icon">📊</span>
+        <h3 className="group-standings-title">{groupName}</h3>
       </div>
       
       {teams.length === 0 ? (
-        <div className="group-empty">Sin datos de equipos</div>
+        <div className="group-standings-empty">Sin equipos registrados</div>
       ) : (
-        <div className="group-teams-list">
-          {teams.map((team, idx) => (
-            <div key={team.team} className="group-team-row">
-              <div className="team-rank">{idx + 1}</div>
-              <div className="team-info">
-                <span className="team-flag">{TEAM_FLAGS[team.team] || "⚽"}</span>
-                <span className="team-name">{team.team}</span>
-              </div>
-              <div className="team-stats">
-                <div className="stat-item">
-                  <span className="stat-value">{team.played}</span>
-                  <span className="stat-label">PJ</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-value">{team.wins}</span>
-                  <span className="stat-label">G</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-value">{team.draws}</span>
-                  <span className="stat-label">E</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-value">{team.losses}</span>
-                  <span className="stat-label">P</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-value">{team.goals_for}</span>
-                  <span className="stat-label">GF</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-value">{team.goals_against}</span>
-                  <span className="stat-label">GC</span>
-                </div>
-                <div className="stat-item diff">
-                  <span className={`stat-value ${team.goal_difference >= 0 ? "positive" : "negative"}`}>
-                    {team.goal_difference >= 0 ? `+${team.goal_difference}` : team.goal_difference}
-                  </span>
-                  <span className="stat-label">DG</span>
-                </div>
-                <div className="stat-item points">
-                  <span className="stat-value points-value">{team.points}</span>
-                  <span className="stat-label">Pts</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <table className="group-standings-table">
+          <thead>
+            <tr>
+              <th className="col-pos">#</th>
+              <th className="col-team">Equipo</th>
+              <th className="col-stat">PJ</th>
+              <th className="col-stat">G</th>
+              <th className="col-stat">E</th>
+              <th className="col-stat">P</th>
+              <th className="col-stat">GF</th>
+              <th className="col-stat">GC</th>
+              <th className="col-stat">DG</th>
+              <th className="col-stat">Pts</th>
+            </tr>
+          </thead>
+          <tbody>
+            {teams.map((team, idx) => (
+              <tr key={team.team}>
+                <td className="col-pos">{idx + 1}</td>
+                <td className="col-team">
+                  <span className="team-flag-cell">{TEAM_FLAGS[team.team] || "⚽"}</span>
+                  <span className="team-name-cell">{team.team}</span>
+                </td>
+                <td className="col-stat">{team.played}</td>
+                <td className="col-stat">{team.wins}</td>
+                <td className="col-stat">{team.draws}</td>
+                <td className="col-stat">{team.losses}</td>
+                <td className="col-stat">{team.goals_for}</td>
+                <td className="col-stat">{team.goals_against}</td>
+                <td className={`col-stat ${team.goal_difference >= 0 ? "dg-positive" : "dg-negative"}`}>
+                  {team.goal_difference >= 0 ? `+${team.goal_difference}` : team.goal_difference}
+                </td>
+                <td className="col-stat pts">{team.points}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );
