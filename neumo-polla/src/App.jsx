@@ -5,7 +5,8 @@ import Predictions from "./components/Predictions";
 import Ranking from "./components/Ranking";
 import Admin from "./components/Admin";
 import ProfileSetup from "./components/ProfileSetup";
-import FinalPositions from "./components/FinalPositions";  // 👈 NUEVO IMPORT
+import FinalPositions from "./components/FinalPositions";
+import GroupStandings from "./components/GroupStandings";  // 👈 NUEVO IMPORT
 import "./App.css";
 
 export default function App() {
@@ -85,6 +86,9 @@ export default function App() {
           <button className={`nav-tab ${activeTab === "predictions" ? "active" : ""}`} onClick={() => setActiveTab("predictions")}>
             <span className="nav-icon">✏️</span> Mis predicciones
           </button>
+          <button className={`nav-tab ${activeTab === "groups" ? "active" : ""}`} onClick={() => setActiveTab("groups")}>
+            <span className="nav-icon">📊</span> Grupos
+          </button>
           <button className={`nav-tab ${activeTab === "final" ? "active" : ""}`} onClick={() => setActiveTab("final")}>
             <span className="nav-icon">🏆</span> Final
           </button>
@@ -99,6 +103,7 @@ export default function App() {
         </nav>
 
         {activeTab === "predictions" && <Predictions userId={session.user.id} />}
+        {activeTab === "groups" && <GroupStandings />}
         {activeTab === "final" && <FinalPositions userId={session.user.id} />}
         {activeTab === "ranking" && <Ranking userId={session.user.id} />}
         {activeTab === "admin" && profile?.is_admin && <Admin user={session.user} onStatsUpdate={handleProfileUpdated} />}
