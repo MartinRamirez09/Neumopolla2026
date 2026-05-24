@@ -1,3 +1,4 @@
+import "./Auth.css";
 import { supabase } from "../supabaseClient";
 
 export default function Auth() {
