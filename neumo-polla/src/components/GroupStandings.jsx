@@ -9,6 +9,34 @@ const GROUPS = [
   "Grupo I", "Grupo J", "Grupo K", "Grupo L"
 ];
 
+// Mapa completo de banderas para TODOS los equipos
+const TEAM_FLAGS = {
+  // Grupo A
+  "México": "🇲🇽", "Sudáfrica": "🇿🇦", "Corea del Sur": "🇰🇷", "República Checa": "🇨🇿",
+  // Grupo B
+  "Canadá": "🇨🇦", "Bosnia y Herzegovina": "🇧🇦", "Estados Unidos": "🇺🇸", "Paraguay": "🇵🇾",
+  // Grupo C
+  "Haití": "🇭🇹", "Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "Brasil": "🇧🇷", "Marruecos": "🇲🇦",
+  // Grupo D
+  "Australia": "🇦🇺", "Turquía": "🇹🇷", "Qatar": "🇶🇦", "Suiza": "🇨🇭",
+  // Grupo E
+  "Costa de Marfil": "🇨🇮", "Ecuador": "🇪🇨", "Alemania": "🇩🇪", "Curazao": "🇨🇼",
+  // Grupo F
+  "Países Bajos": "🇳🇱", "Japón": "🇯🇵", "Suecia": "🇸🇪", "Túnez": "🇹🇳",
+  // Grupo G
+  "Arabia Saudita": "🇸🇦", "Uruguay": "🇺🇾", "Irán": "🇮🇷", "Nueva Zelanda": "🇳🇿",
+  // Grupo H
+  "España": "🇪🇸", "Cabo Verde": "🇨🇻", "Bélgica": "🇧🇪", "Egipto": "🇪🇬",
+  // Grupo I
+  "Francia": "🇫🇷", "Senegal": "🇸🇳", "Irak": "🇮🇶", "Noruega": "🇳🇴",
+  // Grupo J
+  "Argentina": "🇦🇷", "Argelia": "🇩🇿", "Austria": "🇦🇹", "Jordania": "🇯🇴",
+  // Grupo K
+  "Portugal": "🇵🇹", "RD Congo": "🇨🇩", "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "Croacia": "🇭🇷",
+  // Grupo L
+  "Ghana": "🇬🇭", "Panamá": "🇵🇦", "Uzbekistán": "🇺🇿", "Colombia": "🇨🇴"
+};
+
 export default function GroupStandings() {
   const [standings, setStandings] = useState({});
   const [loading, setLoading] = useState(true);
@@ -29,25 +57,28 @@ export default function GroupStandings() {
 
     // Agrupar por grupo
     const grouped = {};
+    GROUPS.forEach(group => { grouped[group] = []; });
+    
     (data || []).forEach(team => {
-      if (!grouped[team.group_name]) grouped[team.group_name] = [];
-      grouped[team.group_name].push(team);
+      if (grouped[team.group_name]) {
+        grouped[team.group_name].push(team);
+      }
     });
     
     setStandings(grouped);
     setLoading(false);
   }
 
-  if (loading) return <div className="standings-loading">Cargando posiciones...</div>;
+  if (loading) return <div className="standings-loading">📊 Cargando posiciones...</div>;
 
   return (
     <div className="standings-page">
-      {/* Selector de grupo para móvil */}
+      {/* Selector de grupos para móvil */}
       <div className="standings-group-selector">
         {GROUPS.map(group => (
           <button
             key={group}
-            className={`group-tab ${selectedGroup === group ? "active" : ""}`}
+            className={`standings-group-tab ${selectedGroup === group ? "active" : ""}`}
             onClick={() => setSelectedGroup(group)}
           >
             {group}
@@ -55,12 +86,10 @@ export default function GroupStandings() {
         ))}
       </div>
 
-      {/* Vista desktop: todos los grupos */}
+      {/* Vista desktop: todos los grupos en grid */}
       <div className="standings-desktop">
         {GROUPS.map(group => (
-          <div key={group} className="standings-group">
-            <GroupTable groupName={group} teams={standings[group] || []} />
-          </div>
+          <GroupTable key={group} groupName={group} teams={standings[group] || []} />
         ))}
       </div>
 
@@ -73,72 +102,56 @@ export default function GroupStandings() {
 }
 
 function GroupTable({ groupName, teams }) {
-  if (teams.length === 0) {
-    return (
-      <div className="standings-container">
-        <h3 className="standings-title">📊 {groupName}</h3>
-        <div className="standings-empty">Sin partidos jugados aún</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="standings-container">
-      <h3 className="standings-title">📊 {groupName}</h3>
-      <div className="standings-table-wrapper">
+    <div className="standings-card">
+      <h3 className="standings-card-title">📊 {groupName}</h3>
+      <div className="standings-table-container">
         <table className="standings-table">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Equipo</th>
-              <th>PJ</th>
-              <th>G</th>
-              <th>E</th>
-              <th>P</th>
-              <th>GF</th>
-              <th>GC</th>
-              <th>DG</th>
-              <th>Pts</th>
+              <th className="col-rank">#</th>
+              <th className="col-team">Equipo</th>
+              <th className="col-num">PJ</th>
+              <th className="col-num">G</th>
+              <th className="col-num">E</th>
+              <th className="col-num">P</th>
+              <th className="col-num">GF</th>
+              <th className="col-num">GC</th>
+              <th className="col-num">DG</th>
+              <th className="col-num">Pts</th>
             </tr>
           </thead>
           <tbody>
-            {teams.map((team, idx) => (
-              <tr key={team.team}>
-                <td>{idx + 1}</td>
-                <td className="standings-team-cell">
-                  <span className="standings-team-flag">{getFlagForTeam(team.team)}</span>
-                  <span>{team.team}</span>
+            {teams.length === 0 ? (
+              <tr>
+                <td colSpan="10" className="standings-empty-row">
+                  Sin datos de equipos
                 </td>
-                <td>{team.played}</td>
-                <td>{team.wins}</td>
-                <td>{team.draws}</td>
-                <td>{team.losses}</td>
-                <td>{team.goals_for}</td>
-                <td>{team.goals_against}</td>
-                <td className={team.goal_difference >= 0 ? "positive" : "negative"}>
-                  {team.goal_difference >= 0 ? `+${team.goal_difference}` : team.goal_difference}
-                </td>
-                <td className="standings-points">{team.points}</td>
               </tr>
-            ))}
+            ) : (
+              teams.map((team, idx) => (
+                <tr key={team.team}>
+                  <td className="col-rank">{idx + 1}</td>
+                  <td className="col-team">
+                    <span className="team-flag">{TEAM_FLAGS[team.team] || "⚽"}</span>
+                    <span className="team-name">{team.team}</span>
+                  </td>
+                  <td className="col-num">{team.played}</td>
+                  <td className="col-num">{team.wins}</td>
+                  <td className="col-num">{team.draws}</td>
+                  <td className="col-num">{team.losses}</td>
+                  <td className="col-num">{team.goals_for}</td>
+                  <td className="col-num">{team.goals_against}</td>
+                  <td className={`col-num ${team.goal_difference >= 0 ? "positive" : "negative"}`}>
+                    {team.goal_difference >= 0 ? `+${team.goal_difference}` : team.goal_difference}
+                  </td>
+                  <td className="col-num points">{team.points}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
     </div>
   );
-}
-
-// Función auxiliar para obtener banderas (puedes expandirla)
-function getFlagForTeam(team) {
-  const flags = {
-    "Argentina": "🇦🇷", "Brasil": "🇧🇷", "Uruguay": "🇺🇾", "Colombia": "🇨🇴",
-    "México": "🇲🇽", "Estados Unidos": "🇺🇸", "Canadá": "🇨🇦", "Costa Rica": "🇨🇷",
-    "España": "🇪🇸", "Francia": "🇫🇷", "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "Alemania": "🇩🇪",
-    "Italia": "🇮🇹", "Países Bajos": "🇳🇱", "Portugal": "🇵🇹", "Bélgica": "🇧🇪",
-    "Croacia": "🇭🇷", "Suecia": "🇸🇪", "Dinamarca": "🇩🇰", "Suiza": "🇨🇭",
-    "Corea del Sur": "🇰🇷", "Japón": "🇯🇵", "Australia": "🇦🇺", "Arabia Saudita": "🇸🇦",
-    "Senegal": "🇸🇳", "Marruecos": "🇲🇦", "Túnez": "🇹🇳", "Egipto": "🇪🇬",
-    "Sudáfrica": "🇿🇦", "Ghana": "🇬🇭", "Nigeria": "🇳🇬", "Camerún": "🇨🇲"
-  };
-  return flags[team] || "🏆";
 }

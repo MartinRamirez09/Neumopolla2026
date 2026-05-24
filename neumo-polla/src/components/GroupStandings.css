@@ -1,6 +1,7 @@
 /* Group Standings Page */
 .standings-page {
   width: 100%;
+  padding: 4px 0;
 }
 
 /* Selector de grupos (mobile) */
@@ -11,9 +12,10 @@
   padding: 8px 0;
   margin-bottom: 16px;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
-.group-tab {
+.standings-group-tab {
   padding: 8px 16px;
   background: white;
   border: 1px solid var(--border);
@@ -23,9 +25,10 @@
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
 }
 
-.group-tab.active {
+.standings-group-tab.active {
   background: var(--green);
   color: white;
   border-color: var(--green);
@@ -43,30 +46,33 @@
   display: none;
 }
 
-/* Contenedor de cada grupo */
-.standings-container {
+/* Tarjeta de cada grupo */
+.standings-card {
   background: white;
   border-radius: 16px;
-  padding: 16px;
+  padding: 12px;
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
   overflow-x: auto;
 }
 
-.standings-title {
-  font-size: 18px;
+.standings-card-title {
+  font-size: 16px;
   font-weight: 700;
   margin-bottom: 12px;
   color: var(--green-dark);
   font-family: 'Syne', sans-serif;
   border-left: 4px solid var(--green);
-  padding-left: 12px;
+  padding-left: 10px;
 }
 
-.standings-table-wrapper {
+/* Contenedor de la tabla con scroll horizontal */
+.standings-table-container {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
+/* Tabla */
 .standings-table {
   width: 100%;
   border-collapse: collapse;
@@ -86,24 +92,46 @@
   color: var(--green-dark);
   font-weight: 600;
   font-size: 11px;
+  white-space: nowrap;
 }
 
-.standings-team-cell {
+/* Columnas con ancho fijo */
+.col-rank {
+  width: 40px;
+}
+
+.col-team {
+  text-align: left;
+  min-width: 140px;
+}
+
+.col-num {
+  width: 38px;
+}
+
+/* Celda del equipo */
+.col-team {
   display: flex;
   align-items: center;
   gap: 8px;
-  text-align: left;
-  font-weight: 500;
 }
 
-.standings-team-flag {
+.team-flag {
   font-size: 18px;
+  flex-shrink: 0;
 }
 
-.standings-points {
+.team-name {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Puntos */
+.points {
   font-weight: 700;
   color: var(--green-dark);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .positive {
@@ -116,17 +144,18 @@
   font-weight: 600;
 }
 
-.standings-empty {
+/* Mensajes vacíos */
+.standings-empty-row {
   text-align: center;
   padding: 30px;
   color: var(--text-muted);
-  font-size: 13px;
 }
 
 .standings-loading {
   text-align: center;
   padding: 40px;
   color: var(--text-muted);
+  font-size: 14px;
 }
 
 /* Responsive */
@@ -143,22 +172,34 @@
     display: flex;
   }
   
-  .standings-container {
-    padding: 12px;
+  .standings-card {
+    padding: 10px;
+  }
+  
+  .standings-card-title {
+    font-size: 14px;
   }
   
   .standings-table th,
   .standings-table td {
-    padding: 6px 3px;
+    padding: 8px 4px;
     font-size: 10px;
   }
   
-  .standings-team-flag {
+  .col-team {
+    min-width: 120px;
+  }
+  
+  .team-flag {
     font-size: 14px;
   }
   
-  .standings-points {
-    font-size: 12px;
+  .team-name {
+    font-size: 10px;
+  }
+  
+  .points {
+    font-size: 11px;
   }
 }
 
