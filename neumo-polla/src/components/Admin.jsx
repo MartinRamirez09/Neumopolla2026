@@ -94,26 +94,46 @@ export default function Admin({ user, onStatsUpdate }) {
   }
 
   async function resetMatch(matchId) {
-    if (!confirm("¿Reabrir partido? Esto borrará el resultado y los puntos.")) return;
-    
-    setSaving(prev => ({ ...prev, [matchId]: true }));
-    
-    const { error } = await supabase
-      .from("matches")
-      .update({ home_score: null, away_score: null, is_finished: false })
-      .eq("id", matchId);
-    
-    if (!error) {
-      setMessage(prev => ({ 
-        ...prev, 
-        [matchId]: { text: "✅ Partido reabierto", type: "success" } 
-      }));
-      fetchData();
-      setTimeout(() => setMessage(prev => ({ ...prev, [matchId]: null })), 3000);
-    }
-    
+  if (!confirm("⚠️ ¿REABRIR PARTIDO? Esto borrará el resultado y los PUNTOS de TODOS los usuarios para este partido. Esta acción no se puede deshacer.")) return;
+  
+  setSaving(prev => ({ ...prev, [matchId]: true }));
+  
+  // 1. Actualizar el partido (borrar resultado)
+  const { error: matchError } = await supabase
+    .from("matches")
+    .update({ home_score: null, away_score: null, is_finished: false })
+    .eq("id", matchId);
+  
+  if (matchError) {
+    setMessage(prev => ({ 
+      ...prev, 
+      [matchId]: { text: "❌ Error al reabrir partido", type: "error" } 
+    }));
     setSaving(prev => ({ ...prev, [matchId]: false }));
+    return;
   }
+  
+  // 2. Borrar los puntos de TODOS los usuarios para este partido
+  const { error: pointsError } = await supabase
+    .from("predictions")
+    .update({ points: 0 })
+    .eq("match_id", matchId);
+  
+  if (pointsError) {
+    console.error("Error al borrar puntos:", pointsError);
+  }
+  
+  setMessage(prev => ({ 
+    ...prev, 
+    [matchId]: { text: "✅ Partido reabierto. Resultado y puntos eliminados.", type: "success" } 
+  }));
+  
+  fetchData();
+  if (onStatsUpdate) onStatsUpdate();
+  
+  setTimeout(() => setMessage(prev => ({ ...prev, [matchId]: null })), 3000);
+  setSaving(prev => ({ ...prev, [matchId]: false }));
+}
 
   if (loading) return <div className="admin-loading">Cargando...</div>;
 
