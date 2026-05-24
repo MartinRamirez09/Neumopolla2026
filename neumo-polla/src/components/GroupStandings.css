@@ -10,6 +10,7 @@
   overflow-x: auto;
   margin-bottom: 16px;
   padding-bottom: 8px;
+  scrollbar-width: thin;
 }
 
 .group-tab {
@@ -30,11 +31,11 @@
   border-color: var(--green);
 }
 
-/* Desktop grid */
+/* Desktop grid - SIN SCROLL HORIZONTAL */
 .groups-desktop {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 20px;
 }
 
 /* Mobile view */
@@ -49,7 +50,7 @@
   padding: 16px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
-  overflow-x: auto;
+  overflow-x: auto; /* Solo para móvil, en desktop no hará falta */
 }
 
 .group-standings-header {
@@ -73,12 +74,11 @@
   margin: 0;
 }
 
-/* Tabla */
+/* Tabla - SIN min-width en desktop */
 .group-standings-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
-  min-width: 550px;
 }
 
 .group-standings-table th,
@@ -95,18 +95,17 @@
   font-size: 11px;
 }
 
-/* Columnas */
+/* Columnas con ancho automático en desktop */
 .col-pos {
   width: 40px;
 }
 
 .col-team {
   text-align: left;
-  min-width: 160px;
 }
 
 .col-stat {
-  width: 38px;
+  width: 40px;
 }
 
 /* Celda de equipo */
@@ -118,6 +117,7 @@
 
 .team-flag-cell {
   font-size: 18px;
+  flex-shrink: 0;
 }
 
 .team-name-cell {
@@ -151,7 +151,7 @@
   font-size: 13px;
 }
 
-/* Responsive */
+/* Responsive Mobile */
 @media (max-width: 768px) {
   .groups-desktop {
     display: none;
@@ -169,8 +169,13 @@
     padding: 12px;
   }
   
-  .col-team {
-    min-width: 140px;
+  /* En móvil SÍ permitimos scroll horizontal */
+  .group-standings-card {
+    overflow-x: auto;
+  }
+  
+  .group-standings-table {
+    min-width: 550px;
   }
   
   .team-flag-cell {
@@ -188,5 +193,20 @@
   
   .pts {
     font-size: 11px;
+  }
+}
+
+/* Para pantallas grandes, que las tablas sean más anchas */
+@media (min-width: 1200px) {
+  .groups-desktop {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .col-stat {
+    width: 45px;
+  }
+  
+  .group-standings-table {
+    font-size: 13px;
   }
 }
